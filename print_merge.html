@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 병합 출력</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; }
+    iframe {
+      width: 100%;
+      border: none;
+      display: block;
+      break-after: page;
+      page-break-after: always;
+    }
+    @media print {
+      #pmOverlay { display: none !important; }
+      iframe { break-after: page; page-break-after: always; }
+    }
+    #pmOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 41, 82, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #pmBox {
+      background: white;
+      border-radius: 14px;
+      padding: 32px 40px;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+      min-width: 300px;
+    }
+    #pmTitle {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f2952;
+      margin-bottom: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    #pmProg {
+      font-size: 13px;
+      color: #64748b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    #pmBar {
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      margin-top: 14px;
+      overflow: hidden;
+    }
+    #pmBarFill {
+      height: 100%;
+      background: #0f2952;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="pmOverlay">
+    <div id="pmBox">
+      <div id="pmTitle">📄 PDF 준비 중</div>
+      <div id="pmProg">페이지 로딩 중...</div>
+      <div id="pmBar"><div id="pmBarFill"></div></div>
+    </div>
+  </div>
+  <div id="frameContainer"></div>
+
+  <script>
+    var params = new URLSearchParams(location.search);
+    var pages = (params.get('pages') || '').split(',').filter(Boolean);
+    var base = location.href.split('?')[0].replace(/[^\/]+$/, '');
+
+    if (pages.length === 0) {
+      document.getElementById('pmProg').textContent = '선택된 페이지가 없습니다.';
+      document.getElementById('pmBarFill').style.width = '0%';
+    } else {
+      var total = pages.length;
+      var loaded = 0;
+      var container = document.getElementById('frameContainer');
+
+      var HIDE_CSS = [
+        '.site-header,.site-nav,.save-bar,.row-btns,.sec-row-btns,.print-btns,',
+        '#printModal,#clearAllBtn,[onclick="clearAll()"]{display:none!important;}',
+        'body{background:white!important;}',
+        '.main{padding:10px!important;max-width:none!important;}'
+      ].join('');
+
+      function injectCSS(iframe) {
+        try {
+          var s = iframe.contentDocument.createElement('style');
+          s.textContent = HIDE_CSS;
+          iframe.contentDocument.head.appendChild(s);
+        } catch (e) {}
+      }
+
+      function getContentHeight(iframe) {
+        try {
+          var doc = iframe.contentDocument;
+          var dh = doc.documentElement.scrollHeight;
+          var bh = doc.body ? doc.body.scrollHeight : 0;
+          return Math.max(dh, bh, 800);
+        } catch (e) {
+          return 1200;
+        }
+      }
+
+      function resizeFrame(iframe) {
+        iframe.style.height = getContentHeight(iframe) + 'px';
+      }
+
+      function updateProgress(n) {
+        document.getElementById('pmProg').textContent =
+          '페이지 로딩 중... (' + n + '/' + total + ')';
+        document.getElementById('pmBarFill').style.width =
+          Math.round((n / total) * 70) + '%';
+      }
+
+      function onFrameLoad(iframe) {
+        injectCSS(iframe);
+        resizeFrame(iframe);
+        loaded++;
+        updateProgress(loaded);
+
+        if (loaded >= total) {
+          document.getElementById('pmProg').textContent =
+            '데이터 로딩 대기 중... (잠시만 기다려주세요)';
+          document.getElementById('pmBarFill').style.width = '85%';
+
+          setTimeout(function () {
+            // Re-resize after Firestore data finishes loading
+            container.querySelectorAll('iframe').forEach(function (f) {
+              resizeFrame(f);
+            });
+            document.getElementById('pmBarFill').style.width = '100%';
+            document.getElementById('pmProg').textContent = '인쇄 다이얼로그 열기...';
+
+            setTimeout(function () {
+              document.getElementById('pmOverlay').style.display = 'none';
+              window.print();
+            }, 500);
+          }, 5000);
+        }
+      }
+
+      pages.forEach(function (p) {
+        var iframe = document.createElement('iframe');
+        iframe.src = base + p;
+        iframe.scrolling = 'no';
+        iframe.style.height = '1200px';
+        iframe.addEventListener('load', function () { onFrameLoad(iframe); });
+        container.appendChild(iframe);
+      });
+    }
+  </script>
+</body>
+</html>

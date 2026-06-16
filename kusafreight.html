@@ -263,46 +263,85 @@ if(new URLSearchParams(location.search).get("print")){setTimeout(()=>window.prin
 
 <!-- Print Modal -->
 <div id="printModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,82,0.4);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:white;border-radius:12px;padding:24px 28px;width:340px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">
-    <div style="font-size:15px;font-weight:600;color:#0f2952;margin-bottom:16px;">🖨 인쇄 / PDF 저장</div>
-    <div style="margin-bottom:20px;">
-      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">인쇄할 페이지 선택</label>
-      <select id="printPageSelect" style="width:100%;padding:9px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;outline:none;">
-        <option value="current">현재 페이지</option>
-        <option value="salesfront.html">① 표지</option>
-        <option value="salesresult.html">② 실적보고</option>
-        <option value="kawase.html">③ 환율보고</option>
-        <option value="kusafreight.html">④ KUSA운임</option>
-        <option value="issuefound.html">⑤ 이상발생</option>
-        <option value="paymentmng.html">⑥ 선수금·미수금</option>
-        <option value="sanzmng.html">⑦ SANZ관리</option>
-        <option value="mtgmng.html">⑧ 미팅관리</option>
-        <option value="all">전체 (모든 페이지)</option>
-      </select>
+  <div style="background:white;border-radius:12px;padding:22px 26px;width:350px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+    <div style="font-size:15px;font-weight:600;color:#0f2952;margin-bottom:14px;">🖨 인쇄 / PDF 저장</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:12px;font-weight:600;color:#374151;">인쇄할 페이지 선택</span>
+      <button id="selectAllBtn" onclick="toggleSelectAll()" style="font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;color:#0f2952;cursor:pointer;font-weight:500;">전체 선택</button>
+    </div>
+    <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="salesfront.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">① 표지</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="salesresult.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">② 실적보고</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="kawase.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">③ 환율보고</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="kusafreight.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">④ KUSA운임</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="issuefound.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">⑤ 이상발생</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="paymentmng.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">⑥ 선수금·미수금</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="sanzmng.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">⑦ SANZ관리</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="print-page-cb" value="mtgmng.html" onchange="updateSelectAllBtn()" style="width:15px;height:15px;accent-color:#0f2952;cursor:pointer;flex-shrink:0;">
+        <span style="font-size:13px;color:#1e293b;">⑧ 미팅관리</span>
+      </label>
     </div>
     <div style="display:flex;gap:8px;">
       <button onclick="closePrintModal()" style="flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;">취소</button>
-      <button onclick="executePrint()" style="flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;border:none;background:#0f2952;color:white;font-weight:500;">PDF 저장</button>
+      <button onclick="executePrint()" style="flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;border:none;background:#0f2952;color:white;font-weight:500;">🖨 인쇄</button>
     </div>
   </div>
 </div>
 <style>@media print{#printModal{display:none!important;}}</style>
 <script>
 function openPrintModal(){
-  const cur=location.pathname.split('/').pop()||'salesfront.html';
-  const sel=document.getElementById('printPageSelect');
-  for(const opt of sel.options){if(opt.value===cur){opt.selected=true;break;}}
+  var cur=location.pathname.split('/').pop()||'salesfront.html';
+  document.querySelectorAll('.print-page-cb').forEach(function(cb){cb.checked=(cb.value===cur);});
+  updateSelectAllBtn();
   document.getElementById('printModal').style.display='flex';
 }
 function closePrintModal(){document.getElementById('printModal').style.display='none';}
+function toggleSelectAll(){
+  var cbs=document.querySelectorAll('.print-page-cb');
+  var allChecked=Array.prototype.every.call(cbs,function(cb){return cb.checked;});
+  Array.prototype.forEach.call(cbs,function(cb){cb.checked=!allChecked;});
+  updateSelectAllBtn();
+}
+function updateSelectAllBtn(){
+  var cbs=document.querySelectorAll('.print-page-cb');
+  var allChecked=Array.prototype.every.call(cbs,function(cb){return cb.checked;});
+  var btn=document.getElementById('selectAllBtn');
+  if(btn) btn.textContent=allChecked?'전체 해제':'전체 선택';
+}
 function executePrint(){
-  const val=document.getElementById('printPageSelect').value;
-  const base=location.href.split('?')[0].replace(/[^\/]+$/,'');
+  var selected=Array.prototype.map.call(document.querySelectorAll('.print-page-cb:checked'),function(cb){return cb.value;});
+  if(!selected.length){alert('인쇄할 페이지를 선택하세요.');return;}
   closePrintModal();
-  if(val==='current'){window.print();}
-  else if(val==='all'){
-    ['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));
-  }else{window.open(base+val+'?print=1','_blank');}
+  var base=location.href.split('?')[0].replace(/[^\/]+$/,'');
+  var cur=location.pathname.split('/').pop()||'salesfront.html';
+  if(selected.length===1){
+    if(selected[0]===cur){window.print();}
+    else{window.open(base+selected[0]+'?print=1','_blank');}
+    return;
+  }
+  window.open(base+'print_merge.html?pages='+selected.join(','),'_blank');
 }
 </script>
 </body>
