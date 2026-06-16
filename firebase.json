@@ -1,0 +1,27 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "firestore.rules",
+      "node_modules/**",
+      ".git/**",
+      "*.xlsx",
+      "*.pdf"
+    ],
+    "redirects": [
+      { "source": "/", "destination": "/salesfront.html", "type": 302 }
+    ],
+    "rewrites": [],
+    "headers": [
+      {
+        "source": "/index.html",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

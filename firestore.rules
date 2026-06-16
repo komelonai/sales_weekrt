@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // weeklyReports 컬렉션: 현재는 누구나 읽기/쓰기 가능
+    // 나중에 Firebase Auth 연동 시 아래 주석 해제하고 위 규칙 삭제
+    match /weeklyReports/{pageId} {
+      allow read, write: if true;
+      // allow read, write: if request.auth != null;  // Auth 연동 후 사용
+    }
+  }
+}

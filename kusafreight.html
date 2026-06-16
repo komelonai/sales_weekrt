@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUSA 운임동향 | 해외영업팀 주간보고</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 40px;max-width:1500px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.kpi-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;}
+.kpi-label{font-size:12px;color:#64748b;font-weight:500;margin-bottom:4px;}
+.kpi-value{font-size:26px;font-weight:700;color:#0f2952;}
+.kpi-change{font-size:13px;margin-top:4px;}
+.kpi-change.up{color:#dc2626;}
+.kpi-change.down{color:#16a34a;}
+.kpi-change.flat{color:#94a3b8;}
+.tab-bar{display:flex;gap:0;margin-bottom:16px;background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;width:fit-content;}
+.tab-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#64748b;transition:all 0.15s;font-weight:500;}
+.tab-btn:hover{background:#f8fafc;color:#0f2952;}
+.tab-btn.active{background:#0f2952;color:white;}
+.card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;margin-bottom:12px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.card-title{font-size:19px;font-weight:700;color:#0f2952;}
+.card-sub{font-size:12px;color:#94a3b8;}
+.chart-wrap{position:relative;height:300px;}
+.tbl-wrap{overflow-x:auto;margin-top:8px;}
+.data-tbl{width:100%;border-collapse:collapse;font-size:15px;}
+.data-tbl th{background:#f3f6fb;padding:7px 10px;font-weight:600;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;}
+.data-tbl td{padding:7px 10px;border:1px solid #f1f5f9;color:#1e293b;text-align:right;white-space:nowrap;}
+.data-tbl td.left{text-align:left;font-weight:500;}
+.data-tbl td.up{color:#dc2626;font-weight:500;}
+.data-tbl td.down{color:#16a34a;font-weight:500;}
+.data-tbl td.current{background:#eff6ff;font-weight:700;color:#0f2952;}
+.data-tbl tr:hover td{background:#f8fafc;}
+.data-tbl tr:hover td.current{background:#dbeafe;}
+.add-form{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1;flex-wrap:wrap;}
+.add-form input{padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;}
+.add-form input:focus{border-color:#0f2952;}
+.inp-label{width:140px;}
+.inp-value{width:100px;}
+.btn-add{padding:7px 16px;background:#0f2952;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;transition:background 0.15s;}
+.btn-add:hover{background:#1e3a6e;}
+.btn-del{padding:3px 8px;background:transparent;color:#94a3b8;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.btn-del:hover{background:#fee2e2;color:#dc2626;border-color:#fca5a5;}
+.legend-row{display:flex;gap:16px;font-size:11px;color:#64748b;margin-top:8px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;}
+.save-status{font-size:12px;color:#94a3b8;}
+.save-status.saving{color:#f59e0b;}
+.save-status.saved{color:#16a34a;}
+@media print{.site-header,.site-nav,.add-form,.btn-del,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;opacity:0.7;">KUSA 운임동향 · 매전선사 ONE EUNSAN 운임 기준</span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">현재 페이지 인쇄</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">전체 인쇄</button>
+    </div>
+  </div>
+</header>
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html" class="active">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">KUSA 운임 동향</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:12px;color:#64748b;">단위: US$ · 40ft HQ 기준</span>
+      <span class="save-status" id="saveStatus"></span>
+    </div>
+  </div>
+  <div id="dashboard">
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">40ft HQ 운임 추이 (EUNSAN 기준)</span>
+        <div class="tab-bar">
+          <button class="tab-btn" onclick="setPeriod(6,this)">6개월</button>
+          <button class="tab-btn" onclick="setPeriod(12,this)">12개월</button>
+          <button class="tab-btn active" onclick="setPeriod(0,this)">전체</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartMain"></canvas></div>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#0f2952;"></span>최신 주차</span>
+        <span><span class="legend-dot" style="background:#93c5fd;"></span>이전 주차</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">주차별 운임 상세</span>
+        <span class="card-sub" id="tableRangeLabel"></span>
+      </div>
+      <div class="tbl-wrap" id="detailTable"></div>
+      <div class="add-form">
+        <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;">+ 새 주차 추가</span>
+        <input class="inp-label" type="text" id="inpLabel" placeholder="예: 26.6월-2차" />
+        <input class="inp-value" type="number" id="inpValue" placeholder="운임 (US$)" min="0" />
+        <button class="btn-add" onclick="addEntry()">추가</button>
+        <span style="font-size:12px;color:#94a3b8;">입력 후 자동 저장됩니다</span>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+const DEFAULT_ENTRIES=[
+  {label:"25.1월-1차",value:9735},{label:"25.1월-2차",value:10395},
+  {label:"25.2월-1차",value:10610},{label:"25.2월-2차",value:8260},
+  {label:"25.3월-1차",value:7485},{label:"25.3월-2차",value:7145},
+  {label:"25.4월-1차",value:7045},{label:"25.4월-2차",value:6095},
+  {label:"25.5월-1차",value:7000},{label:"25.5월-2차",value:7795},
+  {label:"25.6월-1차",value:11045},{label:"25.6월-2차",value:8645},
+  {label:"25.7월-1차",value:7245},{label:"25.7월-2차",value:7045},
+  {label:"25.8월-1차",value:6595},{label:"25.8월-2차",value:6195},
+  {label:"25.9월-1차",value:6395},{label:"25.9월-2차",value:7295},
+  {label:"25.10월-1차",value:5695},{label:"25.10월-2차",value:6245},
+  {label:"25.11월-1차",value:6195},{label:"25.11월-2차",value:6095},
+  {label:"25.12월-1차",value:5745},{label:"25.12월-2차",value:6265},
+  {label:"25.12월-3차",value:5895},{label:"25.12월-4차",value:6045},
+  {label:"26.1월-1차",value:6745},{label:"26.1월-2차",value:6095},
+  {label:"26.2월 통합",value:5995},{label:"26.3월-1차",value:6045},
+  {label:"26.3월-2차",value:6195},{label:"26.4월-1차",value:6580},
+  {label:"26.4월-2차",value:6645},{label:"26.5월-1차",value:6645},
+  {label:"26.5월-2차",value:7045},{label:"26.6월-1차",value:8745}
+];
+let entries=JSON.parse(JSON.stringify(DEFAULT_ENTRIES));
+let currentPeriod=0;
+let mainChart=null;
+let saveTimer=null;
+const DataStore=createDataStore("page4");
+function getSlice(){
+  if(currentPeriod===0)return entries;
+  return entries.slice(Math.max(0,entries.length-currentPeriod*2));
+}
+function renderDashboard(){renderKPI();renderChart();renderTable();}
+function renderKPI(){
+  const latest=entries[entries.length-1]?.value||0;
+  const prev=entries[entries.length-2]?.value||latest;
+  const diff=latest-prev;
+  const pct=prev>0?((diff/prev)*100).toFixed(1):0;
+  const dir=diff>0?"up":diff<0?"down":"flat";
+  const arrow=diff>0?"▲":diff<0?"▼":"─";
+  const ago3=entries[Math.max(0,entries.length-7)]?.value||0;
+  const diff3=latest-ago3;
+  const pct3=ago3>0?((diff3/ago3)*100).toFixed(1):0;
+  const vals=entries.map(e=>e.value).filter(v=>v>0);
+  const maxVal=vals.length?Math.max(...vals):0;
+  const minVal=vals.length?Math.min(...vals):0;
+  const maxLabel=entries.find(e=>e.value===maxVal)?.label||"-";
+  const minLabel=entries.find(e=>e.value===minVal)?.label||"-";
+  document.getElementById("kpiRow").innerHTML=
+    `<div class="kpi-card"><div class="kpi-label">현재 운임 (최신)</div><div class="kpi-value">$${latest.toLocaleString()}</div><div class="kpi-change ${dir}">${arrow} $${Math.abs(diff).toLocaleString()} (${Math.abs(pct)}%) vs 전주</div></div>`+
+    `<div class="kpi-card"><div class="kpi-label">3개월 전 대비</div><div class="kpi-value" style="color:${diff3>=0?"#dc2626":"#16a34a"};">$${ago3.toLocaleString()}</div><div class="kpi-change ${diff3>=0?"up":"down"}">${diff3>=0?"▲":"▼"} $${Math.abs(diff3).toLocaleString()} (${Math.abs(pct3)}%)</div></div>`+
+    `<div class="kpi-card"><div class="kpi-label">기간 내 최고 운임</div><div class="kpi-value" style="color:#dc2626;">$${maxVal.toLocaleString()}</div><div class="kpi-change flat">${maxLabel}</div></div>`+
+    `<div class="kpi-card"><div class="kpi-label">기간 내 최저 운임</div><div class="kpi-value" style="color:#16a34a;">$${minVal.toLocaleString()}</div><div class="kpi-change flat">${minLabel}</div></div>`;
+}
+function setPeriod(months,btn){
+  currentPeriod=months;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderChart();renderTable();
+}
+function renderChart(){
+  const slice=getSlice();
+  const labels=slice.map(e=>e.label);
+  const values=slice.map(e=>e.value);
+  const latest=values[values.length-1];
+  const colors=values.map(v=>v===latest?"#0f2952":"#93c5fd");
+  const borderColors=values.map(v=>v===latest?"#0f2952":"#2563eb");
+  if(mainChart){mainChart.destroy();mainChart=null;}
+  mainChart=new Chart(document.getElementById("chartMain").getContext("2d"),{
+    type:"bar",
+    data:{labels,datasets:[{label:"KUSA 40ft HQ",data:values,backgroundColor:colors,borderColor:borderColors,borderWidth:1,borderRadius:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
+        const v=ctx.parsed.y,i=ctx.dataIndex,prev=i>0?values[i-1]:v,diff=v-prev;
+        const pct=prev>0?((diff/prev)*100).toFixed(1):0;
+        return[`$${v.toLocaleString()}`,`전주 대비: ${diff>=0?"+":""}$${diff.toLocaleString()} (${pct}%)`];
+      }}}},
+      scales:{y:{ticks:{font:{size:11},callback:v=>"$"+v.toLocaleString()},grid:{color:"#f1f5f9"}},x:{ticks:{font:{size:10},maxRotation:45}}}
+    }
+  });
+}
+function renderTable(){
+  const slice=getSlice();
+  const latest=entries[entries.length-1];
+  document.getElementById("tableRangeLabel").textContent=slice.length?`${slice[0].label} ~ ${slice[slice.length-1].label}`:"";
+  let html=`<table class="data-tbl"><thead><tr><th>주차</th><th>40ft HQ 운임 (US$)</th><th>전주 대비</th><th>전주 대비 (%)</th><th style="width:36px;"></th></tr></thead><tbody>`;
+  [...slice].reverse().forEach((entry,ri)=>{
+    const origIdx=entries.indexOf(entry);
+    const origPos=slice.length-1-ri;
+    const prev=origPos>0?slice[origPos-1].value:entry.value;
+    const diff=entry.value-prev;
+    const pct=prev>0?((diff/prev)*100).toFixed(1):0;
+    const dir=diff>0?"up":diff<0?"down":"";
+    const arrow=diff>0?"▲":diff<0?"▼":"─";
+    const isCurrent=entry===latest;
+    html+=`<tr><td class="left${isCurrent?" current":""}">${entry.label}${isCurrent?" ★":""}</td><td class="${isCurrent?"current":""}">$${entry.value.toLocaleString()}</td><td class="${dir}">${origPos===0?"-":arrow+" $"+Math.abs(diff).toLocaleString()}</td><td class="${dir}">${origPos===0?"-":(diff>=0?"+":"")+pct+"%"}</td><td style="text-align:center;"><button class="btn-del" onclick="deleteEntry(${origIdx})" title="삭제">✕</button></td></tr>`;
+  });
+  html+="</tbody></table>";
+  document.getElementById("detailTable").innerHTML=html;
+}
+function addEntry(){
+  const label=document.getElementById("inpLabel").value.trim();
+  const value=parseInt(document.getElementById("inpValue").value,10);
+  if(!label){alert("주차 명칭을 입력해 주세요");return;}
+  if(!value||value<=0){alert("올바른 운임 금액을 입력해 주세요");return;}
+  entries.push({label,value});
+  document.getElementById("inpLabel").value="";
+  document.getElementById("inpValue").value="";
+  renderDashboard();scheduleSave();
+}
+function deleteEntry(idx){
+  if(!confirm(`"${entries[idx].label}" 항목을 삭제하시겠습니까?`))return;
+  entries.splice(idx,1);renderDashboard();scheduleSave();
+}
+function scheduleSave(){
+  const el=document.getElementById("saveStatus");
+  el.textContent="저장 중...";el.className="save-status saving";
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    DataStore.save({entries})
+      .then(()=>{el.textContent="저장됨 ✓";el.className="save-status saved";setTimeout(()=>{el.textContent="";},2000);})
+      .catch(()=>{el.textContent="저장 실패";el.className="save-status";});
+  },800);
+}
+DataStore.load().then(saved=>{
+  if(saved&&saved.entries&&saved.entries.length)entries=saved.entries;
+  renderDashboard();
+}).catch(()=>renderDashboard());
+window.addEventListener("load",()=>{
+  ["inpLabel","inpValue"].forEach(id=>{
+    document.getElementById(id)?.addEventListener("keydown",e=>{if(e.key==="Enter")addEntry();});
+  });
+});
+function printAllPages(){const base=location.href.split("?")[0].replace(/[^\/]+$/,"");["salesfront.html","salesresult.html","kawase.html","kusafreight.html","issuefound.html","paymentmng.html","sanzmng.html","mtgmng.html"].forEach((p,i)=>setTimeout(()=>window.open(base+p+"?print=1","_blank"),i*600));}
+if(new URLSearchParams(location.search).get("print")){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

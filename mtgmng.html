@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미팅관리대장 | 해외영업팀 주간보고</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 80px;max-width:1700px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+
+/* Region tabs */
+.region-tabs{display:flex;margin-bottom:16px;background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;width:fit-content;}
+.rtab{padding:9px 28px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#64748b;font-weight:500;transition:all 0.15s;}
+.rtab:hover{background:#f8fafc;color:#0f2952;}
+.rtab.active{background:#0f2952;color:white;}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+.kpi-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:11px 14px;}
+.kpi-label{font-size:12px;color:#64748b;font-weight:500;margin-bottom:2px;}
+.kpi-value{font-size:24px;font-weight:700;color:#0f2952;}
+.kpi-sub{font-size:12px;color:#94a3b8;margin-top:1px;}
+
+/* Card */
+.card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:12px;overflow:hidden;}
+.card-header{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;background:#fafbfc;}
+.card-title{font-size:19px;font-weight:700;color:#0f2952;}
+
+/* Controls row */
+.controls{display:flex;align-items:center;gap:10px;}
+.ctrl-btn{padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.12s;}
+.ctrl-btn:hover,.ctrl-btn.active{background:#0f2952;color:white;border-color:#0f2952;}
+select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px solid #e2e8f0;background:white;color:#374151;cursor:pointer;}
+
+/* Calendar table */
+.tbl-wrap{overflow-x:auto;}
+.meeting-tbl{border-collapse:collapse;font-size:15px;}
+.meeting-tbl th{background:#f3f6fb;padding:7px 5px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;}
+.meeting-tbl th.co-hd{min-width:130px;text-align:left;padding-left:14px;position:sticky;left:0;z-index:2;background:#f3f6fb;}
+.meeting-tbl th.yr-hd{background:#0f2952;color:white;font-size:11px;padding:5px 8px;}
+.meeting-tbl th.mo-hd{min-width:58px;font-size:11px;color:#64748b;}
+
+.meeting-tbl td{border:1px solid #f0f2f5;text-align:center;vertical-align:middle;padding:0;}
+.meeting-tbl td.co-cell{text-align:left;padding:0 6px 0 14px;font-weight:500;color:#1e293b;background:#fafbfc;border-right:2px solid #e2e8f0;border-bottom:1px solid #f0f2f5;white-space:nowrap;position:sticky;left:0;z-index:1;}
+.meeting-tbl td.total-cell{background:#f3f6fb;font-weight:600;color:#64748b;font-size:11px;padding:6px 4px;}
+.meeting-tbl td.total-cell.has{color:#0f2952;}
+
+/* Meeting cells */
+.m-cell{width:58px;height:48px;cursor:pointer;position:relative;transition:filter 0.12s;}
+.m-cell:hover{filter:brightness(0.92);}
+.m-cell.empty{background:white;}
+.m-cell.empty:hover{background:#f8fafc;}
+.m-cell.empty .plus{display:none;font-size:16px;color:#cbd5e1;line-height:48px;}
+.m-cell.empty:hover .plus{display:block;}
+
+/* Method colors — done */
+.m-cell.done-call  {background:#dbeafe;}
+.m-cell.done-visit {background:#dcfce7;}
+.m-cell.done-expo  {background:#fef3c7;}
+.m-cell.done-hq    {background:#ede9fe;}
+.m-cell.done-other {background:#f1f5f9;}
+
+/* Method colors — plan (lighter + dashed border) */
+.m-cell.plan-call  {background:#eff6ff;border:1.5px dashed #93c5fd!important;}
+.m-cell.plan-visit {background:#f0fdf4;border:1.5px dashed #86efac!important;}
+.m-cell.plan-expo  {background:#fffbeb;border:1.5px dashed #fcd34d!important;}
+.m-cell.plan-hq    {background:#f5f3ff;border:1.5px dashed #c4b5fd!important;}
+.m-cell.plan-other {background:#f8fafc;border:1.5px dashed #cbd5e1!important;}
+
+.m-cell .day{font-size:13px;font-weight:600;color:#1e293b;line-height:1;}
+.m-cell .mth{font-size:10px;color:#64748b;margin-top:2px;font-weight:400;}
+.m-cell.done-call .day,.m-cell.done-visit .day,.m-cell.done-expo .day,
+.m-cell.done-hq .day,.m-cell.done-other .day{color:#0f2952;}
+.m-cell-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;}
+
+/* Legend */
+.legend{display:flex;gap:14px;align-items:center;font-size:11px;color:#64748b;padding:10px 18px;border-top:1px solid #f1f5f9;flex-wrap:wrap;}
+.lg{display:flex;align-items:center;gap:5px;}
+.lg-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+
+/* Add row */
+.add-row-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;border:1px dashed #cbd5e1;background:transparent;color:#64748b;margin:10px 18px;transition:all 0.15s;}
+.add-row-btn:hover{border-color:#0f2952;color:#0f2952;}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,41,82,0.35);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:14px;padding:24px 28px;width:360px;box-shadow:0 12px 40px rgba(0,0,0,0.18);}
+.modal-title{font-size:15px;font-weight:600;color:#0f2952;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:#94a3b8;margin-bottom:18px;}
+.form-row{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;display:block;}
+.form-input{width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;outline:none;transition:border 0.12s;}
+.form-input:focus{border-color:#0f2952;}
+.method-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.method-btn{padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;border:1.5px solid #e2e8f0;background:white;color:#374151;transition:all 0.12s;font-weight:500;}
+.method-btn:hover{border-color:#94a3b8;}
+.method-btn.sel-call{background:#dbeafe;border-color:#2563eb;color:#1d4ed8;}
+.method-btn.sel-visit{background:#dcfce7;border-color:#16a34a;color:#15803d;}
+.method-btn.sel-expo{background:#fef3c7;border-color:#d97706;color:#92400e;}
+.method-btn.sel-hq{background:#ede9fe;border-color:#7c3aed;color:#6d28d9;}
+.method-btn.sel-other{background:#f1f5f9;border-color:#64748b;color:#374151;}
+.done-toggle{display:flex;gap:0;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;}
+.done-btn{flex:1;padding:7px;font-size:12px;cursor:pointer;border:none;background:white;color:#64748b;transition:all 0.12s;}
+.done-btn.active-done{background:#0f2952;color:white;}
+.done-btn.active-plan{background:#d97706;color:white;}
+.modal-footer{display:flex;gap:8px;margin-top:20px;}
+.modal-btn{flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;font-weight:500;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.12s;}
+.modal-btn:hover{background:#f3f4f6;}
+.modal-btn.primary{background:#0f2952;color:white;border-color:#0f2952;}
+.modal-btn.primary:hover{background:#0c2347;}
+.modal-btn.danger{color:#dc2626;border-color:#fecaca;}
+.modal-btn.danger:hover{background:#fef2f2;}
+
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.06);}
+.save-status{font-size:12px;color:#94a3b8;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;}
+.btn:hover{background:#f3f4f6;}
+.btn-primary{background:#0f2952;color:white;border-color:#0f2952;padding:8px 20px;font-size:13px;font-weight:500;}
+.btn-primary:hover{background:#0c2347;}
+@media print{.site-header,.site-nav,.save-bar,.print-btns,.region-actions,.meeting-actions{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.region-card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;opacity:0.7;">미팅 관리대장 · <span id="lastUpdate">2026-06-08</span></span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html" class="active">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">거래선 미팅 관리대장</span>
+    <span style="font-size:12px;color:#64748b;">셀 클릭으로 미팅 추가·수정</span>
+  </div>
+
+  <div class="region-tabs">
+    <button class="rtab active" onclick="switchRegion('europe',this)">유럽 / 일반지역</button>
+    <button class="rtab" onclick="switchRegion('japan',this)">일본</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title" id="calTitle">일본 거래선 미팅 관리대장</span>
+      <div class="controls">
+        <button class="ctrl-btn" id="btn2025" onclick="setYear(2025)">2025년</button>
+        <button class="ctrl-btn" id="btn2026" onclick="setYear(2026)">2026년</button>
+        <button class="ctrl-btn active" id="btnBoth" onclick="setYear('both')">전체</button>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" id="calendarTable"></div>
+
+    <div class="legend">
+      <span style="font-size:11px;font-weight:600;color:#374151;margin-right:4px;">완료</span>
+      <div class="lg"><div class="lg-dot" style="background:#dbeafe;border:1px solid #93c5fd;"></div>화상</div>
+      <div class="lg"><div class="lg-dot" style="background:#dcfce7;border:1px solid #86efac;"></div>출장</div>
+      <div class="lg"><div class="lg-dot" style="background:#fef3c7;border:1px solid #fcd34d;"></div>전시회</div>
+      <div class="lg"><div class="lg-dot" style="background:#ede9fe;border:1px solid #c4b5fd;"></div>본사방문</div>
+      <div class="lg"><div class="lg-dot" style="background:#f1f5f9;border:1px solid #cbd5e1;"></div>기타</div>
+      <span style="margin-left:8px;font-size:11px;font-weight:600;color:#374151;">예정</span>
+      <div class="lg"><div class="lg-dot" style="background:#eff6ff;border:1.5px dashed #93c5fd;"></div>화상</div>
+      <div class="lg"><div class="lg-dot" style="background:#f0fdf4;border:1.5px dashed #86efac;"></div>출장</div>
+      <div class="lg"><div class="lg-dot" style="background:#fffbeb;border:1.5px dashed #fcd34d;"></div>전시회</div>
+    </div>
+
+    <button class="add-row-btn" onclick="addCompany()">+ 거래처 추가</button>
+  </div>
+</main>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBg(event)">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">미팅 정보</div>
+    <div class="modal-sub" id="modalSub"></div>
+
+    <div class="form-row">
+      <label class="form-label">날짜 (일)</label>
+      <input class="form-input" id="inputDay" type="text" placeholder="예: 15 또는 15,23">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">미팅 방법</label>
+      <div class="method-btns" id="methodBtns">
+        <button class="method-btn" data-method="화상"   onclick="selectMethod(this)">화상</button>
+        <button class="method-btn" data-method="출장"   onclick="selectMethod(this)">출장</button>
+        <button class="method-btn" data-method="전시회" onclick="selectMethod(this)">전시회</button>
+        <button class="method-btn" data-method="본사방문" onclick="selectMethod(this)">본사방문</button>
+        <button class="method-btn" data-method="기타"   onclick="selectMethod(this)">기타</button>
+      </div>
+      <input class="form-input" id="inputMethodText" type="text" placeholder="직접 입력 (선택사항)" style="margin-top:6px;">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">상태</label>
+      <div class="done-toggle">
+        <button class="done-btn active-done" id="btnDone" onclick="setDone(true)">● 완료</button>
+        <button class="done-btn" id="btnPlan" onclick="setDone(false)">□ 예정</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn danger" id="deleteBtn" onclick="deleteMeeting()">삭제</button>
+      <button class="modal-btn" onclick="closeModal()">취소</button>
+      <button class="modal-btn primary" onclick="saveMeeting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <span class="save-status" id="saveStatus">저장되지 않은 변경사항</span>
+  <div style="display:flex;gap:8px;">
+    <button class="btn" onclick="clearRegion()">현재 탭 초기화</button>
+    <button class="btn btn-primary" onclick="saveAll()">저장</button>
+  </div>
+</div>
+
+<script>
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const STORAGE_KEY = 'weeklyReport_page8';
+
+const DataStore = createDataStore('page8');
+let currentRegion = 'europe';
+let yearFilter = 'both';
+
+// Modal state
+let modal = { ci: null, year: null, month: null, isNew: false, isDone: true, selectedMethod: '' };
+
+let data = {
+  japan: [
+    { name: '일본 후지와라', meetings: {
+      2025: [{m:1,d:'23',method:'출장',done:true},{m:2,d:'21',method:'화상',done:true},{m:6,d:'19',method:'화상',done:true},{m:8,d:'5,23',method:'화상',done:true},{m:10,d:'15',method:'출장',done:true},{m:11,d:'19,25',method:'출장',done:true}],
+      2026: [{m:1,d:'14',method:'화상',done:true},{m:4,d:'9',method:'출장',done:true},{m:5,d:'14',method:'화상',done:true},{m:6,d:'8',method:'화상',done:false}]
+    }},
+    { name: '타카기 1사업부', meetings: {
+      2025: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'22',method:'화상',done:true},{m:4,d:'28',method:'화상',done:true},{m:6,d:'20',method:'화상',done:true},{m:8,d:'23',method:'전시회',done:true},{m:10,d:'16',method:'출장',done:true},{m:11,d:'26',method:'출장',done:true}],
+      2026: [{m:1,d:'21',method:'화상',done:true},{m:5,d:'26-28',method:'전시회',done:false}]
+    }},
+    { name: '타카기 3사업부', meetings: {
+      2025: [{m:1,d:'22',method:'출장',done:true},{m:5,d:'20',method:'화상',done:true},{m:6,d:'4',method:'화상',done:true},{m:9,d:'16',method:'출장',done:true}],
+      2026: [{m:1,d:'13',method:'화상',done:true},{m:2,d:'5',method:'화상',done:true},{m:3,d:'20,25',method:'화상',done:true},{m:4,d:'10',method:'출장',done:true},{m:6,d:'9',method:'화상',done:false}]
+    }},
+    { name: '트러스코', meetings: {
+      2025: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'21',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true},{m:9,d:'2',method:'화상',done:true}],
+      2026: [{m:1,d:'20',method:'화상',done:true},{m:4,d:'15',method:'화상',done:true}]
+    }},
+    { name: '키이치툴스', meetings: {
+      2025: [{m:1,d:'22',method:'출장',done:true},{m:6,d:'14',method:'본사방문',done:true}],
+      2026: [{m:6,d:'1',method:'출장',done:false}]
+    }},
+    { name: '신와', meetings: {
+      2025: [{m:4,d:'12',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true}],
+      2026: [{m:3,d:'8',method:'출장',done:true}]
+    }},
+    { name: '마블', meetings: { 2025: [], 2026: [] }}
+  ],
+  europe: [
+    { name: '뉴질랜드', meetings: {
+      2025: [{m:5,d:'15,16',method:'화상',done:true},{m:9,d:'29',method:'화상',done:true}],
+      2026: [{m:1,d:'12',method:'본사방문',done:true},{m:2,d:'12',method:'화상',done:true},{m:3,d:'3',method:'기타',done:true}]
+    }},
+    { name: '호주', meetings: {
+      2025: [{m:2,d:'18',method:'화상',done:true},{m:5,d:'18',method:'화상',done:true}],
+      2026: [{m:1,d:'',method:'화상',done:true},{m:2,d:'',method:'화상',done:true},{m:5,d:'10',method:'화상',done:true}]
+    }},
+    { name: '영국', meetings: {
+      2025: [{m:3,d:'5',method:'화상',done:true}],
+      2026: [{m:1,d:'14',method:'화상',done:true},{m:2,d:'3',method:'기타',done:true},{m:5,d:'23',method:'화상',done:true}]
+    }},
+    { name: '스페인 (ACHA)', meetings: { 2025: [], 2026: [{m:2,d:'',method:'기타',done:true}] }},
+    { name: '네덜란드 (메모)', meetings: {
+      2025: [{m:1,d:'10',method:'화상',done:true},{m:2,d:'21',method:'화상',done:true},{m:4,d:'',method:'화상',done:true},{m:5,d:'27',method:'화상',done:true},{m:8,d:'22',method:'화상',done:true}],
+      2026: [{m:1,d:'3',method:'기타',done:true},{m:2,d:'23',method:'화상',done:true},{m:3,d:'8',method:'화상',done:true}]
+    }},
+    { name: '콜롬비아', meetings: { 2025: [], 2026: [] }},
+    { name: '파나마', meetings: { 2025: [], 2026: [] }},
+    { name: '핀란드 (STC)', meetings: { 2025: [], 2026: [{m:1,d:'4',method:'기타',done:true}] }},
+    { name: '이스라엘', meetings: { 2025: [], 2026: [{m:1,d:'5',method:'기타',done:true}] }},
+    { name: '스페인 (NAROTEK)', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true}] }},
+    { name: '프랑스 (Wilmart)', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true},{m:2,d:'16',method:'화상',done:true}] }},
+    { name: '이탈리아 (Ferval)', meetings: {
+      2025: [{m:10,d:'25',method:'출장',done:true}],
+      2026: [{m:1,d:'9',method:'출장',done:true}]
+    }},
+    { name: '체코 (Levior)', meetings: { 2025: [], 2026: [{m:2,d:'',method:'기타',done:false}] }},
+    { name: '라트비아', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true}] }},
+    { name: '에스토니아', meetings: {
+      2025: [{m:5,d:'19',method:'화상',done:true}],
+      2026: [{m:1,d:'6',method:'기타',done:true}]
+    }},
+    { name: '카스텔라리 (톱)', meetings: {
+      2025: [{m:7,d:'',method:'화상',done:true},{m:8,d:'',method:'화상',done:true},{m:9,d:'',method:'화상',done:true}],
+      2026: [{m:1,d:'28',method:'화상',done:true},{m:3,d:'11',method:'출장',done:true},{m:4,d:'20',method:'출장',done:true}]
+    }}
+  ]
+};
+
+/* ── Region / Year ── */
+function switchRegion(region, btn) {
+  currentRegion = region;
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setYear(y) {
+  yearFilter = y;
+  ['btn2025','btn2026','btnBoth'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const map = {2025:'btn2025', 2026:'btn2026', both:'btnBoth'};
+  document.getElementById(map[y]).classList.add('active');
+  render();
+}
+
+function render() {
+  const companies = data[currentRegion];
+  document.getElementById('calTitle').textContent = currentRegion === 'japan'
+    ? '일본 거래선 미팅 관리대장' : '유럽/일반지역 핵심거래선 미팅 관리대장';
+  renderKPI(companies);
+  renderCalendar(companies);
+}
+
+/* ── KPI ── */
+function renderKPI(companies) {
+  let done25=0, done26=0, plan26=0;
+  const methods = {};
+  companies.forEach(c => {
+    done25 += (c.meetings[2025]||[]).filter(m=>m.done).length;
+    done26 += (c.meetings[2026]||[]).filter(m=>m.done).length;
+    plan26 += (c.meetings[2026]||[]).filter(m=>!m.done).length;
+    (c.meetings[2026]||[]).forEach(m => { const k=m.method||'기타'; methods[k]=(methods[k]||0)+1; });
+  });
+  const top = Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('kpiRow').innerHTML = `
+  <div class="kpi-card"><div class="kpi-label">2025년 미팅 완료</div><div class="kpi-value">${done25}회</div><div class="kpi-sub">${companies.length}개 거래처</div></div>
+  <div class="kpi-card"><div class="kpi-label">2026년 미팅 완료</div><div class="kpi-value" style="color:#0f2952;">${done26}회</div><div class="kpi-sub">현재까지</div></div>
+  <div class="kpi-card"><div class="kpi-label">2026년 예정 미팅</div><div class="kpi-value" style="color:#d97706;">${plan26}회</div><div class="kpi-sub">스케줄 확정</div></div>
+  <div class="kpi-card"><div class="kpi-label">주요 미팅 방식</div><div class="kpi-value" style="font-size:17px;">${top?top[0]:'-'}</div><div class="kpi-sub">${top?top[1]+'회':''}</div></div>`;
+}
+
+/* ── Calendar ── */
+function methodClass(method, done) {
+  if (!method) return done ? 'done-other' : 'plan-other';
+  const m = method;
+  const type = m.includes('화상') ? 'call' : m.includes('출장') ? 'visit' : m.includes('전시') ? 'expo' : m.includes('본사') ? 'hq' : 'other';
+  return (done ? 'done-' : 'plan-') + type;
+}
+
+function renderCalendar(companies) {
+  const show25 = yearFilter === 2025 || yearFilter === 'both';
+  const show26 = yearFilter === 2026 || yearFilter === 'both';
+  const years = [show25 && 2025, show26 && 2026].filter(Boolean);
+
+  let html = '<table class="meeting-tbl"><thead><tr>';
+  html += '<th class="co-hd" rowspan="2">거래처</th>';
+  years.forEach(yr => html += `<th class="yr-hd" colspan="12">${yr}년</th>`);
+  html += '</tr><tr>';
+  years.forEach(() => MONTHS.forEach(m => html += `<th class="mo-hd">${m}</th>`));
+  html += '</tr></thead><tbody>';
+
+  companies.forEach((co, ci) => {
+    html += `<tr><td class="co-cell" onclick="openNameEdit(${ci})" title="클릭하여 이름 수정" style="cursor:pointer;">${co.name}</td>`;
+    years.forEach(yr => {
+      MONTHS.forEach((_, mi) => {
+        const mo = mi + 1;
+        const entry = (co.meetings[yr]||[]).find(m => m.m === mo);
+        if (entry) {
+          const cls = methodClass(entry.method, entry.done);
+          const dayTxt = entry.d ? String(entry.d) : '';
+          const tooltip = `${co.name} · ${yr}년 ${mo}월${dayTxt?' '+dayTxt+'일':''} · ${entry.method||''} · ${entry.done?'완료':'예정'}`;
+          html += `<td style="padding:0;"><div class="m-cell ${cls}" onclick="openModal(${ci},${yr},${mo})" title="${tooltip}">
+            <div class="m-cell-inner">
+              <div class="day">${dayTxt||'·'}</div>
+              <div class="mth">${entry.method?entry.method.substring(0,2):''}</div>
+            </div></div></td>`;
+        } else {
+          html += `<td style="padding:0;"><div class="m-cell empty" onclick="openModal(${ci},${yr},${mo},true)">
+            <div class="m-cell-inner"><div class="plus">+</div></div>
+          </div></td>`;
+        }
+      });
+    });
+    html += '</tr>';
+  });
+
+  // Total row
+  html += '<tr><td class="co-cell total-cell" style="font-weight:600;">월간 합계</td>';
+  years.forEach(yr => {
+    MONTHS.forEach((_, mi) => {
+      const mo = mi + 1;
+      const cnt = companies.reduce((s,c) => s+(c.meetings[yr]||[]).filter(m=>m.m===mo).length, 0);
+      html += `<td class="total-cell${cnt?' has':''}"><div class="m-cell-inner" style="height:32px;">${cnt||''}</div></td>`;
+    });
+  });
+  html += '</tr></tbody></table>';
+  document.getElementById('calendarTable').innerHTML = html;
+}
+
+/* ── Modal ── */
+function openModal(ci, year, month, isNew=false) {
+  const co = data[currentRegion][ci];
+  const entry = !isNew ? (co.meetings[year]||[]).find(m=>m.m===month) : null;
+  modal = { ci, year, month, isNew: isNew || !entry };
+
+  document.getElementById('modalTitle').textContent = `${co.name}`;
+  document.getElementById('modalSub').textContent = `${year}년 ${MONTHS[month-1]}`;
+  document.getElementById('inputDay').value = entry ? (entry.d||'') : '';
+  document.getElementById('inputMethodText').value = '';
+
+  // Method buttons
+  const selMethod = entry ? entry.method : '';
+  document.querySelectorAll('.method-btn').forEach(btn => {
+    btn.className = 'method-btn';
+    if (btn.dataset.method === selMethod) {
+      selectMethod(btn);
+    }
+  });
+  // If method not in presets, show in text
+  const presets = ['화상','출장','전시회','본사방문','기타'];
+  if (selMethod && !presets.includes(selMethod)) {
+    document.getElementById('inputMethodText').value = selMethod;
+  }
+
+  const done = entry ? entry.done : true;
+  setDone(done);
+
+  document.getElementById('deleteBtn').style.display = modal.isNew ? 'none' : '';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('inputDay').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function closeModalIfBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function selectMethod(btn) {
+  document.querySelectorAll('.method-btn').forEach(b => b.className = 'method-btn');
+  const m = btn.dataset.method;
+  const cls = m==='화상'?'sel-call':m==='출장'?'sel-visit':m==='전시회'?'sel-expo':m==='본사방문'?'sel-hq':'sel-other';
+  btn.classList.add(cls);
+  modal.selectedMethod = m;
+  document.getElementById('inputMethodText').value = '';
+}
+
+function setDone(done) {
+  modal.isDone = done;
+  document.getElementById('btnDone').className = 'done-btn' + (done ? ' active-done' : '');
+  document.getElementById('btnPlan').className = 'done-btn' + (!done ? ' active-plan' : '');
+}
+
+function saveMeeting() {
+  const co = data[currentRegion][modal.ci];
+  if (!co.meetings[modal.year]) co.meetings[modal.year] = [];
+  const day = document.getElementById('inputDay').value.trim();
+  const methodText = document.getElementById('inputMethodText').value.trim();
+  const method = methodText || modal.selectedMethod || '기타';
+  const idx = co.meetings[modal.year].findIndex(m => m.m === modal.month);
+  const entry = { m: modal.month, d: day, method, done: modal.isDone };
+  if (idx >= 0) co.meetings[modal.year][idx] = entry;
+  else co.meetings[modal.year].push(entry);
+  closeModal();
+  render();
+  markChanged();
+}
+
+function deleteMeeting() {
+  const co = data[currentRegion][modal.ci];
+  const arr = co.meetings[modal.year] || [];
+  const idx = arr.findIndex(m => m.m === modal.month);
+  if (idx >= 0) arr.splice(idx, 1);
+  closeModal();
+  render();
+  markChanged();
+}
+
+function openNameEdit(ci) {
+  const co = data[currentRegion][ci];
+  const n = prompt('거래처명 수정:', co.name);
+  if (n && n !== co.name) { co.name = n; render(); markChanged(); }
+}
+
+function addCompany() {
+  const n = prompt('새 거래처명:');
+  if (!n) return;
+  data[currentRegion].push({ name: n, meetings: { 2025: [], 2026: [] } });
+  render();
+  markChanged();
+}
+
+/* ── Persist ── */
+async function clearRegion() {
+  if (!confirm('현재 탭 데이터를 초기화하시겠습니까?')) return;
+  // 현재 지역만 삭제 후 나머지 저장
+  const saved = await DataStore.load().catch(() => null);
+  if (saved) { delete saved[currentRegion]; await DataStore.save(saved).catch(() => {}); }
+  location.reload();
+}
+async function saveAll() {
+  document.getElementById('lastUpdate').textContent = new Date().toISOString().slice(0,10);
+  document.getElementById('saveStatus').textContent = '저장 중...';
+  try {
+    await DataStore.save(data);
+    document.getElementById('saveStatus').textContent = '저장 완료 · ' + new Date().toLocaleTimeString('ko-KR');
+  } catch(e) {
+    document.getElementById('saveStatus').textContent = '저장 실패 — 다시 시도';
+  }
+}
+async function loadAll() {
+  const s = await DataStore.load().catch(() => null);
+  if (!s) return;
+  try { if(s.japan) data.japan=s.japan; if(s.europe) data.europe=s.europe; } catch(e){}
+}
+function markChanged() {
+  document.getElementById('saveStatus').textContent = '저장되지 않은 변경사항';
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+loadAll().then(() => render()).catch(() => render());
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

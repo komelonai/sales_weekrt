@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>표지 | 해외영업팀 주간보고</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;letter-spacing:0.3px;}
+.site-meta{display:flex;align-items:center;gap:12px;font-size:13px;}
+.date-input{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:13px;cursor:pointer;}
+.date-input:focus{outline:none;background:rgba(255,255,255,0.25);}
+
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+
+.main{padding:14px 20px 80px;max-width:1400px;margin:0 auto;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.week-label{font-size:13px;color:#64748b;font-weight:400;}
+
+.section-card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:12px;overflow:hidden;}
+.section-head{padding:8px 14px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#fafbfc;}
+.section-label{font-size:19px;font-weight:700;color:#0f2952;}
+.section-tag{font-size:12px;background:#e8f0fe;color:#1e5ba8;padding:2px 8px;border-radius:20px;font-weight:500;}
+
+.sec-tbl{width:100%;border-collapse:collapse;font-size:16px;}
+.sec-tbl td{padding:6px 10px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.8;}
+.sec-tbl td.num{width:36px;text-align:center;color:#94a3b8;font-size:12px;font-weight:600;border-right:1px solid #f1f5f9;background:#fafbfc;user-select:none;}
+.sec-tbl td.txt{outline:none;color:#1e293b;min-height:28px;word-break:break-word;}
+.sec-tbl td.txt:empty:before{content:attr(placeholder);color:#cbd5e1;pointer-events:none;}
+.sec-tbl td.txt:focus{background:#fafcff;}
+.sec-tbl tr:last-child td{border-bottom:none;}
+.sec-row-btns{display:flex;gap:6px;padding:8px 14px;border-top:1px solid #f1f5f9;background:#fafbfc;}
+
+.freight-wrap{padding:14px 16px;}
+.freight-tbl{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:10px;}
+.freight-tbl th{background:#f3f6fb;padding:7px 10px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;}
+.freight-tbl td{padding:7px 10px;border:1px solid #e2e8f0;color:#1e293b;text-align:center;min-width:80px;}
+.freight-tbl td[contenteditable="true"]:focus{outline:none;background:#eff6ff;}
+
+.note-area{min-height:50px;font-size:13px;line-height:1.8;color:#374151;outline:none;white-space:pre-wrap;margin-top:4px;}
+.note-area:empty:before{content:attr(placeholder);color:#94a3b8;}
+.note-area:focus{background:#fafcff;}
+
+.ieepa-row3{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f1f5f9;}
+.ieepa-stat{padding:14px 18px;border-right:1px solid #f1f5f9;display:flex;flex-direction:column;gap:3px;}
+.ieepa-stat:last-child{border-right:none;}
+.ieepa-stat-label{font-size:12px;color:#94a3b8;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;}
+.ieepa-stat-val{font-size:26px;font-weight:700;color:#0f2952;outline:none;line-height:1.3;}
+.ieepa-stat-val:empty:before{content:attr(placeholder);color:#cbd5e1;font-size:16px;font-weight:400;}
+.ieepa-stat-val:focus{background:#eff6ff;border-radius:4px;padding:0 6px;}
+.ieepa-stat-val.c-blue{color:#1e5ba8;}
+.ieepa-stat-val.c-amber{color:#d97706;}
+.ieepa-stat-val.c-green{color:#059669;}
+.ieepa-stat-unit{font-size:13px;color:#94a3b8;margin-top:1px;}
+.ieepa-rate-val{font-size:30px;font-weight:800;color:#059669;line-height:1.2;}
+.ieepa-rate-val.na{color:#94a3b8;font-weight:400;font-size:22px;}
+.ieepa-rate-bar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-top:8px;overflow:hidden;}
+.ieepa-rate-bar{height:100%;background:linear-gradient(90deg,#059669,#34d399);border-radius:3px;transition:width 0.5s ease;}
+.ieepa-row4{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f1f5f9;}
+.ieepa-cumul-kpi{background:linear-gradient(135deg,#f0fdf4,#dcfce7);}
+.ieepa-history{padding:0 16px 14px;}
+.ieepa-history-hd{font-size:12px;color:#94a3b8;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;padding:8px 0 5px;}
+.ieepa-htbl{width:100%;border-collapse:collapse;font-size:16px;}
+.ieepa-htbl th{background:#f3f6fb;padding:7px 10px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;font-size:13px;}
+.ieepa-htbl td{padding:7px 10px;border:1px solid #e2e8f0;color:#1e293b;text-align:center;}
+.ieepa-htbl td[contenteditable]:focus{outline:none;background:#eff6ff;}
+.ieepa-htbl td.cumul{background:#f0fdf4;color:#059669;font-weight:600;}
+
+.row-btns{display:flex;gap:6px;margin-bottom:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;}
+.btn:hover{background:#f3f4f6;}
+.btn-danger{color:#dc2626;border-color:#fca5a5;}
+.btn-danger:hover{background:#fff5f5;}
+
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.05);}
+.save-status{font-size:12px;color:#94a3b8;}
+.btn-primary{background:#0f2952;color:white;border-color:#0f2952;padding:8px 18px;font-size:13px;}
+.btn-primary:hover{background:#0c2347;}
+@media print{.site-header,.site-nav,.save-bar,.row-btns,.sec-row-btns,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.section-card{break-inside:avoid;margin-bottom:12px;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="site-meta">
+      <input type="date" class="date-input" id="reportDate" value="2026-06-08">
+      <span id="weekLabel" style="font-size:12px;opacity:0.7;"></span>
+    </div>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html" class="active">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-title">
+    해외영업팀 주간 회의 내용
+    <span class="week-label" id="weekDisplay"></span>
+  </div>
+
+  <!-- 공통 -->
+  <div class="section-card">
+    <div class="section-head"><span class="section-label">공통</span><span class="section-tag">전체</span></div>
+    <table class="sec-tbl"><tbody id="sec_common">
+      <tr><td class="num">1</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td></tr>
+    </tbody></table>
+    <div class="sec-row-btns">
+      <button class="btn" onclick="addSecRow('sec_common')">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeSecRow('sec_common')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 미국 -->
+  <div class="section-card">
+    <div class="section-head"><span class="section-label">미국</span><span class="section-tag">North America</span></div>
+    <table class="sec-tbl"><tbody id="sec_usa">
+      <tr><td class="num">1</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td></tr>
+    </tbody></table>
+    <div class="sec-row-btns">
+      <button class="btn" onclick="addSecRow('sec_usa')">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeSecRow('sec_usa')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 유럽/일반 -->
+  <div class="section-card">
+    <div class="section-head"><span class="section-label">유럽 / 일반지역</span><span class="section-tag">Europe &amp; General</span></div>
+    <table class="sec-tbl"><tbody id="sec_europe">
+      <tr><td class="num">1</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td></tr>
+    </tbody></table>
+    <div class="sec-row-btns">
+      <button class="btn" onclick="addSecRow('sec_europe')">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeSecRow('sec_europe')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 일본 -->
+  <div class="section-card">
+    <div class="section-head"><span class="section-label">일본</span><span class="section-tag">Japan</span></div>
+    <table class="sec-tbl"><tbody id="sec_japan">
+      <tr><td class="num">1</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td></tr>
+    </tbody></table>
+    <div class="sec-row-btns">
+      <button class="btn" onclick="addSecRow('sec_japan')">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeSecRow('sec_japan')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 아웃소싱/기타 -->
+  <div class="section-card">
+    <div class="section-head"><span class="section-label">아웃소싱 / 기타</span><span class="section-tag">Outsourcing &amp; Others</span></div>
+    <table class="sec-tbl"><tbody id="sec_etc">
+      <tr><td class="num">1</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td></tr>
+    </tbody></table>
+    <div class="sec-row-btns">
+      <button class="btn" onclick="addSecRow('sec_etc')">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeSecRow('sec_etc')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 미국 운임 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">미국 운임 현황</span>
+      <span style="font-size:11px;color:#64748b;">포워딩별 베트남발 미국향 운임 및 Booking 현황</span>
+    </div>
+    <div class="freight-wrap">
+      <table class="freight-tbl">
+        <thead>
+          <tr>
+            <th>Forwarding</th>
+            <th>Line</th>
+            <th>40ft HQ</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody id="freightBody">
+          <tr>
+            <td contenteditable="true">QSD</td>
+            <td contenteditable="true">OOCL / ONE</td>
+            <td contenteditable="true">$8,450</td>
+            <td contenteditable="true">via LAX, LGB</td>
+          </tr>
+          <tr>
+            <td contenteditable="true">EUNSAN</td>
+            <td contenteditable="true">ONE / YML / MSC</td>
+            <td contenteditable="true">$8,745 / $8,745 / $8,595</td>
+            <td contenteditable="true">via LAX, LGB</td>
+          </tr>
+          <tr>
+            <td contenteditable="true">YONGSUNG</td>
+            <td contenteditable="true">OOCL / ONE</td>
+            <td contenteditable="true">$8,840 / $8,640</td>
+            <td contenteditable="true">via LAX, LGB</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="row-btns">
+        <button class="btn" onclick="addRow()">+ 행 추가</button>
+        <button class="btn btn-danger" onclick="removeRow()">- 행 삭제</button>
+      </div>
+      <div class="note-area" contenteditable="true" id="freightNotes"
+        placeholder="운임 관련 특이사항을 입력하세요...&#10;예) 6월 1차 운임 상승 (5월 2차 운임 $6,875 ~ $7,580)&#10;현재 미국항 스페이스 부족 현상이 심하여, 지난달 대비 운임 상승폭이 높으며 롤오버도 빈번히 발생."></div>
+    </div>
+  </div>
+
+  <!-- IEEPA 관세환급 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">미국 IEEPA 관세환급 현황</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="font-size:11px;color:#64748b;">기준일&nbsp;<span contenteditable="true" id="ieepa_basedate" style="outline:none;border-bottom:1px dashed #cbd5e1;padding:0 2px;">5/27</span></span>
+        <span style="font-size:12px;color:#64748b;font-weight:500;">총 환급 금액&nbsp;<span contenteditable="true" id="ieepa_grand_total" style="outline:none;color:#059669;font-weight:700;font-size:14px;border-bottom:1px dashed #6ee7b7;padding:0 2px;" oninput="calcRate()">$2,346,154.20</span></span>
+      </div>
+    </div>
+    <!-- KPI 4개 행 -->
+    <div class="ieepa-row4">
+      <div class="ieepa-stat">
+        <div class="ieepa-stat-label">총 제출 건수</div>
+        <div class="ieepa-stat-val" contenteditable="true" id="ieepa_total" placeholder="0">236</div>
+        <div class="ieepa-stat-unit">건</div>
+      </div>
+      <div class="ieepa-stat">
+        <div class="ieepa-stat-label">승인 건수</div>
+        <div class="ieepa-stat-val c-blue" contenteditable="true" id="ieepa_approved" placeholder="0">176</div>
+        <div class="ieepa-stat-unit">건</div>
+      </div>
+      <div class="ieepa-stat">
+        <div class="ieepa-stat-label">승인 후 환급 대기</div>
+        <div class="ieepa-stat-val c-amber" contenteditable="true" id="ieepa_pending" placeholder="0">159</div>
+        <div class="ieepa-stat-unit">건</div>
+      </div>
+      <div class="ieepa-stat ieepa-cumul-kpi" style="border-right:none;">
+        <div class="ieepa-stat-label">누적 환급 금액</div>
+        <div class="ieepa-stat-val c-green" id="ieepa_cumul_amount" style="font-size:18px;">—</div>
+        <div class="ieepa-stat-unit" id="ieepa_cumul_rate" style="font-size:12px;font-weight:600;color:#059669;">총 환급 기준 —</div>
+      </div>
+    </div>
+    <!-- 환급 이력 테이블 -->
+    <div class="ieepa-history">
+      <table class="ieepa-htbl">
+        <thead>
+          <tr>
+            <th style="width:100px;">날짜</th>
+            <th style="width:90px;">총 환급 건수</th>
+            <th>환급 총액 (예상)</th>
+            <th>실 환급 금액</th>
+            <th style="width:90px;">환급률</th>
+          </tr>
+        </thead>
+        <tbody id="ieepaHistoryBody">
+          <tr>
+            <td contenteditable="true" oninput="markChanged()">May</td>
+            <td contenteditable="true" oninput="markChanged()">17건</td>
+            <td contenteditable="true" oninput="calcRate()"></td>
+            <td contenteditable="true" oninput="calcRate()">$161,517.49</td>
+            <td class="cumul"></td>
+          </tr>
+          <tr>
+            <td contenteditable="true" oninput="markChanged()">June</td>
+            <td contenteditable="true" oninput="markChanged()"></td>
+            <td contenteditable="true" oninput="calcRate()"></td>
+            <td contenteditable="true" oninput="calcRate()">$55,004.00</td>
+            <td class="cumul"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="sec-row-btns" style="padding:8px 14px;">
+        <button class="btn" onclick="addHistoryRow()">+ 행 추가</button>
+        <button class="btn btn-danger" onclick="removeHistoryRow()">- 행 삭제</button>
+      </div>
+    </div>
+    <div style="padding:0 16px 14px;">
+      <div class="note-area" contenteditable="true" id="ieepaNote"
+        placeholder="IEEPA 관련 특이사항 입력..."></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="save-bar">
+  <span class="save-status" id="saveStatus">저장되지 않은 변경사항</span>
+  <div style="display:flex;gap:8px;">
+    <button class="btn" onclick="clearAll()">초기화</button>
+    <button class="btn btn-primary" onclick="saveAll()">저장</button>
+  </div>
+</div>
+
+<script>
+const SEC_IDS = ['sec_common','sec_usa','sec_europe','sec_japan','sec_etc'];
+const CE_IDS  = ['freightNotes','ieepa_total','ieepa_approved','ieepa_pending','ieepa_basedate','ieepa_grand_total','ieepaNote'];
+const STORAGE_KEY = 'weeklyReport_page1';
+
+const DataStore = createDataStore('page1');
+
+function getWeekLabel(dateStr) {
+  const d = new Date(dateStr);
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const weekNum = Math.ceil(day / 7);
+  const labels = ['','1째','2째','3째','4째','5째'];
+  return `${d.getFullYear()}년 ${month}월 ${labels[weekNum] || weekNum+'째'}주`;
+}
+
+function updateWeekLabel() {
+  const val = document.getElementById('reportDate').value;
+  const lbl = getWeekLabel(val);
+  document.getElementById('weekDisplay').textContent = lbl;
+  document.getElementById('weekLabel').textContent = lbl;
+}
+
+async function saveAll() {
+  const data = { date: document.getElementById('reportDate').value };
+  SEC_IDS.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.innerHTML; });
+  CE_IDS.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.innerHTML; });
+  data.freightBody = document.getElementById('freightBody').innerHTML;
+  data.ieepaHistoryBody = document.getElementById('ieepaHistoryBody').innerHTML;
+  document.getElementById('saveStatus').textContent = '저장 중...';
+  try {
+    await DataStore.save(data);
+    document.getElementById('saveStatus').textContent = '저장 완료 · ' + new Date().toLocaleTimeString('ko-KR');
+  } catch(e) {
+    document.getElementById('saveStatus').textContent = '저장 실패 — 다시 시도';
+  }
+}
+
+async function loadAll() {
+  const data = await DataStore.load();
+  if (!data) return;
+  try {
+    if (data.date) { document.getElementById('reportDate').value = data.date; updateWeekLabel(); }
+    SEC_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] != null) { el.innerHTML = data[id]; renumberSec(id); }
+    });
+    CE_IDS.forEach(id => { const el = document.getElementById(id); if (el && data[id] != null) el.innerHTML = data[id]; });
+    if (data.freightBody) document.getElementById('freightBody').innerHTML = data.freightBody;
+    if (data.ieepaHistoryBody) document.getElementById('ieepaHistoryBody').innerHTML = data.ieepaHistoryBody;
+  } catch(e) {}
+}
+
+function renumberSec(id) {
+  const tb = document.getElementById(id);
+  if (!tb) return;
+  Array.from(tb.rows).forEach((tr, i) => { if (tr.cells[0]) tr.cells[0].textContent = i + 1; });
+}
+
+function addSecRow(id) {
+  const tb = document.getElementById(id);
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="num">${tb.rows.length + 1}</td><td class="txt" contenteditable="true" placeholder="내용 입력..."></td>`;
+  tb.appendChild(tr);
+  tr.cells[1].focus();
+  markChanged();
+}
+
+function removeSecRow(id) {
+  const tb = document.getElementById(id);
+  if (tb.rows.length > 1) { tb.deleteRow(tb.rows.length - 1); markChanged(); }
+}
+
+function addRow() {
+  const tb = document.getElementById('freightBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>';
+  tb.appendChild(tr);
+  markChanged();
+}
+
+function removeRow() {
+  const tb = document.getElementById('freightBody');
+  if (tb.rows.length > 1) tb.deleteRow(tb.rows.length - 1);
+  markChanged();
+}
+
+async function clearAll() {
+  if (!confirm('모든 내용을 초기화하시겠습니까?')) return;
+  await DataStore.clear();
+  location.reload();
+}
+
+function calcRate() {
+  const grandTotal = parseFloat((document.getElementById('ieepa_grand_total').textContent||'').replace(/[^0-9.]/g,'')) || 0;
+  const rows = document.querySelectorAll('#ieepaHistoryBody tr');
+  let cumul = 0;
+  rows.forEach(tr => {
+    const paid = parseFloat((tr.cells[3] ? tr.cells[3].textContent : '').replace(/[^0-9.]/g,'')) || 0;
+    cumul += paid;
+    if (tr.cells[4]) {
+      if (grandTotal > 0 && paid > 0) {
+        const pct = paid / grandTotal * 100;
+        tr.cells[4].textContent = pct.toFixed(2) + '%';
+        tr.cells[4].style.color = pct >= 10 ? '#059669' : '#1e5ba8';
+        tr.cells[4].style.fontWeight = '700';
+      } else {
+        tr.cells[4].textContent = '';
+        tr.cells[4].style.color = '';
+      }
+    }
+  });
+  const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const cumulEl = document.getElementById('ieepa_cumul_amount');
+  const rateEl  = document.getElementById('ieepa_cumul_rate');
+  if (cumulEl) cumulEl.textContent = cumul > 0 ? fmt(cumul) : '—';
+  if (rateEl) {
+    if (grandTotal > 0 && cumul > 0) {
+      const pct = (cumul / grandTotal * 100).toFixed(2);
+      rateEl.textContent = '총 환급 기준 ' + pct + '%';
+    } else {
+      rateEl.textContent = '총 환급 기준 —';
+    }
+  }
+  markChanged();
+}
+
+function addHistoryRow() {
+  const tb = document.getElementById('ieepaHistoryBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td contenteditable="true" oninput="markChanged()"></td><td contenteditable="true" oninput="markChanged()"></td><td contenteditable="true" oninput="calcRate()"></td><td contenteditable="true" oninput="calcRate()"></td><td class="cumul"></td>';
+  tb.appendChild(tr);
+  tr.cells[0].focus();
+  markChanged();
+}
+
+function removeHistoryRow() {
+  const tb = document.getElementById('ieepaHistoryBody');
+  if (tb.rows.length > 1) { tb.deleteRow(tb.rows.length - 1); calcRate(); markChanged(); }
+}
+
+function markChanged() {
+  document.getElementById('saveStatus').textContent = '저장되지 않은 변경사항';
+}
+
+document.querySelectorAll('[contenteditable]').forEach(el => {
+  el.addEventListener('input', markChanged);
+});
+document.getElementById('reportDate').addEventListener('change', () => {
+  updateWeekLabel();
+  markChanged();
+});
+
+loadAll().then(() => calcRate()).catch(() => calcRate());
+updateWeekLabel();
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

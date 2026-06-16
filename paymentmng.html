@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선수금·미수금 | 해외영업팀 주간보고</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 40px;max-width:1600px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+
+.upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
+.upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
+.upload-fname{font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.kpi-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:11px 14px;}
+.kpi-label{font-size:12px;color:#64748b;font-weight:500;margin-bottom:4px;}
+.kpi-value{font-size:22px;font-weight:700;}
+.kpi-sub{font-size:12px;color:#94a3b8;margin-top:2px;}
+
+/* Section card */
+.section-card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:16px;overflow:hidden;}
+.section-head{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #f1f5f9;background:#fafbfc;}
+.section-label{font-size:19px;font-weight:700;color:#0f2952;display:flex;align-items:center;gap:8px;}
+.section-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.badge-blue{background:#dbeafe;color:#2563eb;}
+.badge-red{background:#fee2e2;color:#dc2626;}
+.note-input{flex:1;min-width:0;margin:0 16px;padding:4px 10px;font-size:12px;color:#374151;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;outline:none;font-family:inherit;}
+.note-input:focus{border-color:#0f2952;background:white;}
+
+/* Notice */
+.notice{background:#fefce8;border:1px solid #fef08a;border-radius:6px;padding:8px 12px;font-size:12px;color:#854d0e;margin:10px 16px;}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;padding:0 16px 16px;}
+.data-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.data-tbl th{background:#f3f6fb;padding:7px 9px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;}
+.data-tbl td{padding:7px 9px;border:1px solid #f1f5f9;color:#1e293b;text-align:right;white-space:nowrap;}
+.data-tbl td.left{text-align:left;}
+.data-tbl td.center{text-align:center;}
+.data-tbl tr:hover td{background:#fafbfc;}
+.data-tbl tr.overdue td{background:#fff5f5;}
+.data-tbl tr.warn td{background:#fffbeb;}
+.data-tbl tr.first-row td{background:#fef9c3;font-weight:600;}
+.dday-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;}
+.dday-over{background:#fee2e2;color:#dc2626;}
+.dday-warn{background:#fef3c7;color:#d97706;}
+.dday-ok{background:#dcfce7;color:#16a34a;}
+.total-row td{background:#f3f6fb;font-weight:700;border-top:2px solid #e2e8f0;}
+
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8;font-size:13px;}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;}
+.filter-label{font-size:12px;color:#64748b;}
+.filter-select{font-size:12px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;color:#374151;background:white;cursor:pointer;}
+.filter-input{font-size:12px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;color:#374151;width:140px;}
+@media print{.site-header,.site-nav,.save-bar,.upload-zone,.filter-bar,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;opacity:0.7;">선수금·미수금 관리 · 2025.12.01~2026.06.01 (6개월간)</span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html" class="active">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">해외영업팀 선수금 / 미수금 보고</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#dc2626;font-weight:500;">사장님 지시(2/3) — 대금 지급 조건 PI 명시 · 선입금 거래선 선입금확인후 오더 진행</span>
+      <span class="upload-fname" id="uploadFname"></span>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">↑ 파일 업로드</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+    </div>
+  </div>
+
+  <div id="dashboard">
+
+    <!-- KPI -->
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- 선수금 보고 -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-label">
+          <span class="section-badge badge-blue">선수금</span>
+          선수금 보고
+        </span>
+        <input class="note-input" id="advanceNote" placeholder="Note..." />
+        <span style="font-size:11px;color:#94a3b8;white-space:nowrap;" id="advanceCount"></span>
+      </div>
+      <div class="filter-bar">
+        <span class="filter-label">국가</span>
+        <select class="filter-select" id="advanceCountryFilter" onchange="filterAdvance()"><option value="">전체</option></select>
+        <span class="filter-label">거래처</span>
+        <input class="filter-input" id="advanceNameFilter" placeholder="거래처명 검색..." oninput="filterAdvance()">
+        <span class="filter-label">통화</span>
+        <select class="filter-select" id="advanceCurrFilter" onchange="filterAdvance()"><option value="">전체</option></select>
+      </div>
+      <div class="tbl-wrap" id="advanceTable"></div>
+    </div>
+
+    <!-- 미수금 보고 -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-label">
+          <span class="section-badge badge-red">미수금</span>
+          미수금 보고
+        </span>
+        <input class="note-input" id="arNote" placeholder="Note..." />
+        <span style="font-size:11px;color:#94a3b8;white-space:nowrap;" id="arCount"></span>
+      </div>
+      <div class="notice" id="arNotice" style="display:none;"></div>
+      <div class="filter-bar">
+        <span class="filter-label">지역</span>
+        <select class="filter-select" id="arCountryFilter" onchange="filterAR()"><option value="">전체</option></select>
+        <span class="filter-label">거래처</span>
+        <input class="filter-input" id="arNameFilter" placeholder="거래처명 검색..." oninput="filterAR()">
+        <span class="filter-label">만기</span>
+        <select class="filter-select" id="arDdayFilter" onchange="filterAR()">
+          <option value="">전체</option>
+          <option value="over">만기 초과</option>
+          <option value="warn">30일 이내</option>
+          <option value="ok">여유</option>
+        </select>
+      </div>
+      <div class="tbl-wrap" id="arTable"></div>
+    </div>
+
+  </div>
+
+  <div id="emptyState" style="display:none;"><div
+  </div>
+</main>
+
+<script>
+let advanceData = [];
+let arData = [];
+let advanceCols = [];
+let arCols = [];
+
+
+const DataStore = createDataStore('page6');
+
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  const names = Array.from(files).map(f => f.name).join(', ');
+  const fn = document.getElementById('uploadFname');
+  if (fn) fn.textContent = `📄 ${names}`;
+
+  const promises = Array.from(files).map(f => new Promise(resolve => {
+    const r = new FileReader();
+    r.onload = e => resolve({ wb: XLSX.read(e.target.result, { type: 'array' }), name: f.name });
+    r.readAsArrayBuffer(f);
+  }));
+
+  Promise.all(promises).then(results => {
+    advanceData = []; arData = [];
+    advanceCols = []; arCols = [];
+
+    results.forEach(({ wb, name }) => {
+      const lname = name.toLowerCase();
+      if (lname.includes('선수금')) {
+        // 파일명에 "선수금" → 선수금 섹션
+        parseAdvanceSheet(wb.Sheets[wb.SheetNames[0]]);
+      } else if (lname.includes('미수금')) {
+        // 파일명에 "미수금" → 미수금 섹션
+        parseARSheet(wb.Sheets[wb.SheetNames[0]]);
+      } else {
+        // 파일명으로 구분 안 되면 시트명으로 시도
+        parseWorkbook(wb);
+      }
+    });
+
+    renderDashboard();
+    const advNote = document.getElementById('advanceNote').value;
+    const arNote  = document.getElementById('arNote').value;
+    DataStore.save({ advance: advanceData, ar: arData, advanceCols, arCols, advNote, arNote }).catch(e => console.warn('[DataStore] 저장 오류:', e));
+  });
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const fn = document.getElementById('uploadFname');
+  if (fn) fn.textContent = '📄 ' + file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, { type: 'array' });
+    parseWorkbook(wb);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseWorkbook(wb) {
+  // Try to find advance and AR sheets
+  const names = wb.SheetNames;
+
+  // If multiple sheets, try to identify them
+  let advSheet = null, arSheet = null;
+
+  names.forEach(n => {
+    const lower = n.toLowerCase();
+    if (lower.includes('선수') || lower.includes('advance')) advSheet = n;
+    if (lower.includes('미수') || lower.includes('ar') || lower.includes('receivable')) arSheet = n;
+  });
+
+  // If single sheet, parse it and look for both sections
+  if (!advSheet && !arSheet) {
+    parseSingleSheet(wb.Sheets[names[0]]);
+    return;
+  }
+
+  if (advSheet) parseAdvanceSheet(wb.Sheets[advSheet]);
+  if (arSheet) parseARSheet(wb.Sheets[arSheet]);
+  if (!advSheet && names[0]) parseAdvanceSheet(wb.Sheets[names[0]]);
+  if (!arSheet && names[1]) parseARSheet(wb.Sheets[names[1]]);
+
+  renderDashboard();
+}
+
+function parseSingleSheet(ws) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  let advStart = -1, arStart = -1;
+
+  rows.forEach((row, i) => {
+    const rs = row.join(' ');
+    if (rs.includes('선수금') && advStart === -1) advStart = i;
+    if (rs.includes('미수금') && arStart === -1 && i > advStart) arStart = i;
+  });
+
+  if (advStart !== -1) {
+    const end = arStart !== -1 ? arStart : rows.length;
+    parseAdvanceRows(rows.slice(advStart, end));
+  }
+  if (arStart !== -1) {
+    parseARRows(rows.slice(arStart));
+  }
+  renderDashboard();
+}
+
+function parseAdvanceSheet(ws) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  parseAdvanceRows(rows);
+}
+
+function parseARSheet(ws) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  parseARRows(rows);
+}
+
+function parseAdvanceRows(rows) {
+  let headerIdx = -1;
+  rows.forEach((row, i) => {
+    if (row.some(c => String(c).includes('국가') || String(c).includes('거래처'))) {
+      headerIdx = i;
+    }
+  });
+  if (headerIdx === -1) {
+    if (rows.length > 1) {
+      advanceCols = rows[0].map(String);
+      advanceData.push(...rows.slice(1).filter(r => r.some(c => c !== '')));
+    }
+    return;
+  }
+  advanceCols = rows[headerIdx].map(String);
+  advanceData.push(...rows.slice(headerIdx + 1).filter(r => r.some(c => c !== '')));
+}
+
+function parseARRows(rows) {
+  let headerIdx = -1;
+  rows.forEach((row, i) => {
+    if (row.some(c => String(c).includes('지역') || String(c).includes('거래처'))) {
+      headerIdx = i;
+    }
+  });
+  if (headerIdx === -1) {
+    if (rows.length > 1) {
+      arCols = rows[0].map(String);
+      arData.push(...rows.slice(1).filter(r => r.some(c => c !== '')));
+    }
+    return;
+  }
+  arCols = rows[headerIdx].map(String);
+  arData.push(...rows.slice(headerIdx + 1).filter(r => r.some(c => c !== '')));
+}
+
+function getDday(dateVal) {
+  if (!dateVal) return null;
+  let d;
+  if (typeof dateVal === 'number') {
+    d = new Date((dateVal - 25569) * 86400000);
+  } else {
+    d = new Date(String(dateVal));
+  }
+  if (isNaN(d.getTime())) return null;
+  const today = new Date();
+  return Math.floor((d - today) / 86400000);
+}
+
+function ddayBadge(days) {
+  if (days === null) return '';
+  if (days < 0) return `<span class="dday-badge dday-over">D+${Math.abs(days)}</span>`;
+  if (days <= 30) return `<span class="dday-badge dday-warn">D-${days}</span>`;
+  return `<span class="dday-badge dday-ok">D-${days}</span>`;
+}
+
+function fmt(v) {
+  const n = parseFloat(String(v).replace(/[,$]/g,''));
+  if (isNaN(n)) return v || '-';
+  return n.toLocaleString('ko-KR');
+}
+
+function fmtDate(v) {
+  if (!v) return '-';
+  let d;
+  if (typeof v === 'number') {
+    d = new Date((v - 25569) * 86400000);
+  } else {
+    d = new Date(String(v));
+  }
+  if (isNaN(d.getTime())) return String(v);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function isDateCol(colName) {
+  return /일자|날짜|등록일|발행일|수령일|만기일|ship.*date|date/i.test(colName);
+}
+
+function colDisplayName(name) {
+  if (name === 'compute_1') return '차액';
+  return name;
+}
+
+function fmtCell(v, colName, ci) {
+  if (isDateCol(colName)) return fmtDate(v);
+  const isNum = typeof v === 'number' || (v && !isNaN(parseFloat(String(v).replace(/[,$]/g,''))));
+  if (isNum && ci > 3) return fmt(v);
+  return v || '-';
+}
+
+function renderDashboard() {
+  populateFilters();
+  renderKPI();
+  renderAdvanceTable(advanceData);
+  renderARTable(arData);
+}
+
+function populateFilters() {
+  // Advance country filter
+  const advCountryIdx = advanceCols.findIndex(c => c.includes('국가') || c.includes('지역'));
+  if (advCountryIdx >= 0) {
+    const countries = [...new Set(advanceData.map(r => r[advCountryIdx]).filter(Boolean))];
+    const sel = document.getElementById('advanceCountryFilter');
+    countries.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+  }
+  const advCurrIdx = advanceCols.findIndex(c => c.includes('통화'));
+  if (advCurrIdx >= 0) {
+    const currs = [...new Set(advanceData.map(r => r[advCurrIdx]).filter(Boolean))];
+    const sel = document.getElementById('advanceCurrFilter');
+    currs.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+  }
+
+  // AR country filter
+  const arCountryIdx = arCols.findIndex(c => c.includes('지역') || c.includes('국가'));
+  if (arCountryIdx >= 0) {
+    const regions = [...new Set(arData.map(r => r[arCountryIdx]).filter(Boolean))];
+    const sel = document.getElementById('arCountryFilter');
+    regions.forEach(r => sel.innerHTML += `<option value="${r}">${r}</option>`);
+  }
+}
+
+function renderKPI() {
+  const advPiIdx   = advanceCols.findIndex(c => c.includes('PI') && c.includes('금액'));
+  const advNegoIdx = advanceCols.findIndex(c => c.includes('NEGO') && c.includes('금액'));
+  const advCurrIdx = advanceCols.findIndex(c => c.includes('통화'));
+  let negoZeroCount = 0;
+  const negoZeroByC = {};
+  advanceData.forEach(r => {
+    if (advPiIdx >= 0 && advNegoIdx >= 0) {
+      const pi   = parseFloat(String(r[advPiIdx]   || '').replace(/[,$]/g,'')) || 0;
+      const nego = parseFloat(String(r[advNegoIdx] || '').replace(/[,$]/g,'')) || 0;
+      if (pi > 0 && nego === 0) {
+        negoZeroCount++;
+        const curr = (advCurrIdx >= 0 ? String(r[advCurrIdx]||'') : '') || '기타';
+        negoZeroByC[curr] = (negoZeroByC[curr] || 0) + pi;
+      }
+    }
+  });
+
+  const arDdayIdx = arCols.findIndex(c => c.includes('만기'));
+  const arAmtIdx  = arCols.findIndex(c => c.includes('금액') || c.includes('잔액'));
+  const arCurrIdx = arCols.findIndex(c => c.includes('통화'));
+  let overdueCount = 0;
+  const overdueByC = {};
+  arData.forEach(r => {
+    const days = getDday(r[arDdayIdx]);
+    if (days !== null && days < 0) {
+      overdueCount++;
+      const amt  = parseFloat(String(r[arAmtIdx] || '').replace(/[,$]/g,'')) || 0;
+      const curr = (arCurrIdx >= 0 ? String(r[arCurrIdx]||'') : '') || '기타';
+      overdueByC[curr] = (overdueByC[curr] || 0) + amt;
+    }
+  });
+
+  const fmtAmt = v => v ? v.toLocaleString('ko-KR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '-';
+  const currLines = (byC, color) => Object.keys(byC).length
+    ? Object.entries(byC).map(([c,v]) =>
+        `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;">
+          <span style="font-size:11px;background:${color}18;color:${color};border-radius:3px;padding:1px 5px;font-weight:600;">${c}</span>
+          <span style="font-size:13px;font-weight:700;color:#1e293b;">${fmtAmt(v)}</span>
+        </span>`).join('')
+    : `<span style="font-size:13px;color:#94a3b8;">-</span>`;
+
+  document.getElementById('kpiRow').innerHTML = `
+  <div class="kpi-card" style="border-top:3px solid #2563eb;">
+    <div class="kpi-label" style="color:#2563eb;font-weight:600;">선수금 · NEGO 미등록 건수</div>
+    <div class="kpi-value" style="color:#2563eb;">${negoZeroCount}건</div>
+    <div class="kpi-sub">NEGO 금액 0% 항목</div>
+  </div>
+  <div class="kpi-card" style="border-top:3px solid #2563eb;">
+    <div class="kpi-label" style="color:#2563eb;font-weight:600;">선수금 · NEGO 미등록 금액</div>
+    <div class="kpi-value" style="font-size:14px;line-height:1.8;margin-top:4px;">${currLines(negoZeroByC,'#2563eb')}</div>
+    <div class="kpi-sub">미등록 PI 합산 (통화별)</div>
+  </div>
+  <div class="kpi-card" style="border-top:3px solid #dc2626;">
+    <div class="kpi-label" style="color:#dc2626;font-weight:600;">미수금 · 만기 초과 건수</div>
+    <div class="kpi-value" style="color:#dc2626;">${overdueCount}건</div>
+    <div class="kpi-sub">즉시 확인 필요</div>
+  </div>
+  <div class="kpi-card" style="border-top:3px solid #dc2626;">
+    <div class="kpi-label" style="color:#dc2626;font-weight:600;">미수금 · 만기 초과 금액</div>
+    <div class="kpi-value" style="font-size:14px;line-height:1.8;margin-top:4px;">${currLines(overdueByC,'#dc2626')}</div>
+    <div class="kpi-sub">만기 지난 총액 (통화별)</div>
+  </div>`;
+}
+
+function filterAdvance() {
+  const country = document.getElementById('advanceCountryFilter').value;
+  const name = document.getElementById('advanceNameFilter').value.toLowerCase();
+  const curr = document.getElementById('advanceCurrFilter').value;
+  const countryIdx = advanceCols.findIndex(c => c.includes('국가') || c.includes('지역'));
+  const nameIdx = advanceCols.findIndex(c => c.includes('거래처명'));
+  const currIdx = advanceCols.findIndex(c => c.includes('통화'));
+
+  const filtered = advanceData.filter(r => {
+    if (country && String(r[countryIdx] || '') !== country) return false;
+    if (name && !String(r[nameIdx] || '').toLowerCase().includes(name)) return false;
+    if (curr && String(r[currIdx] || '') !== curr) return false;
+    return true;
+  });
+  renderAdvanceTable(filtered);
+}
+
+function filterAR() {
+  const region = document.getElementById('arCountryFilter').value;
+  const name = document.getElementById('arNameFilter').value.toLowerCase();
+  const ddayF = document.getElementById('arDdayFilter').value;
+  const regionIdx = arCols.findIndex(c => c.includes('지역') || c.includes('국가'));
+  const nameIdx = arCols.findIndex(c => c.includes('거래처명'));
+  const ddayIdx = arCols.findIndex(c => c.includes('만기'));
+
+  const filtered = arData.filter(r => {
+    if (region && String(r[regionIdx] || '') !== region) return false;
+    if (name && !String(r[nameIdx] || '').toLowerCase().includes(name)) return false;
+    if (ddayF) {
+      const days = getDday(r[ddayIdx]);
+      if (ddayF === 'over' && (days === null || days >= 0)) return false;
+      if (ddayF === 'warn' && (days === null || days < 0 || days > 30)) return false;
+      if (ddayF === 'ok' && (days === null || days <= 30)) return false;
+    }
+    return true;
+  });
+  renderARTable(filtered);
+}
+
+function renderAdvanceTable(data) {
+  const el = document.getElementById('advanceTable');
+  document.getElementById('advanceCount').textContent = `${data.length}건`;
+  if (!advanceCols.length) { el.innerHTML = '<div class="empty-state" style="padding:20px;">데이터 없음</div>'; return; }
+
+  const piIdx   = advanceCols.findIndex(c => c.includes('PI') && c.includes('금액'));
+  const negoIdx = advanceCols.findIndex(c => c.includes('NEGO') && c.includes('금액'));
+
+  const seenAdvCols = new Set();
+  const visibleAdvIdx = advanceCols.reduce((acc, c, ci) => {
+    const name = c.trim();
+    if (!seenAdvCols.has(name) && !name.includes('코드') && name !== '일자') { seenAdvCols.add(name); acc.push(ci); }
+    return acc;
+  }, []);
+
+  let html = '<table class="data-tbl"><thead><tr>';
+  visibleAdvIdx.forEach(ci => html += `<th>${colDisplayName(advanceCols[ci])}</th>`);
+  if (piIdx >= 0 && negoIdx >= 0) html += '<th>NEGO 비율</th>';
+  html += '</tr></thead><tbody>';
+
+  data.forEach((row, ri) => {
+    let isZeroNego = false;
+    if (piIdx >= 0 && negoIdx >= 0) {
+      const pi   = parseFloat(String(row[piIdx]   || '').replace(/[,$]/g,'')) || 0;
+      const nego = parseFloat(String(row[negoIdx] || '').replace(/[,$]/g,'')) || 0;
+      isZeroNego = pi > 0 && nego === 0;
+    }
+    const rowStyle = isZeroNego ? ' style="background:#fff0f0;"' : '';
+    html += `<tr${rowStyle}>`;
+    visibleAdvIdx.forEach((ci, vi) => {
+      const v = row[ci];
+      html += `<td class="${vi <= 1 ? 'left' : vi === 2 ? 'center' : ''}">${fmtCell(v, advanceCols[ci], ci)}</td>`;
+    });
+    if (piIdx >= 0 && negoIdx >= 0) {
+      const pi   = parseFloat(String(row[piIdx]   || '').replace(/[,$]/g,'')) || 0;
+      const nego = parseFloat(String(row[negoIdx] || '').replace(/[,$]/g,'')) || 0;
+      const pct  = pi > 0 ? (nego / pi * 100).toFixed(1) : '-';
+      const color = pct !== '-' ? (parseFloat(pct) >= 100 ? '#16a34a' : parseFloat(pct) >= 50 ? '#d97706' : '#dc2626') : '#94a3b8';
+      html += `<td class="center" style="font-weight:600;color:${color};">${pct !== '-' ? pct + '%' : '-'}</td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderARTable(data) {
+  const el = document.getElementById('arTable');
+  document.getElementById('arCount').textContent = `${data.length}건`;
+
+  // Show notices
+  const noticeEl = document.getElementById('arNotice');
+  const notices = [];
+  arData.forEach(r => {
+    const rs = r.join(' ');
+    if (rs.includes('ERP') || rs.includes('맞지 않')) notices.push(rs.substring(0, 80));
+  });
+  if (notices.length) {
+    noticeEl.style.display = 'block';
+    noticeEl.textContent = notices[0];
+  }
+
+  if (!arCols.length) { el.innerHTML = '<div class="empty-state" style="padding:20px;">데이터 없음</div>'; return; }
+
+  const ddayIdx = arCols.findIndex(c => c.includes('만기'));
+  const remainIdx = arCols.findIndex(c => c.includes('잔액'));
+
+  // 중복 컬럼명 제거 (첫 번째만 유지)
+  const seenCols = new Set();
+  const visibleColIdx = arCols.reduce((acc, c, ci) => {
+    const name = c.trim();
+    if (!seenCols.has(name) && !name.includes('코드') && name !== '일자') { seenCols.add(name); acc.push(ci); }
+    return acc;
+  }, []);
+
+  let html = '<table class="data-tbl"><thead><tr>';
+  visibleColIdx.forEach(ci => html += `<th>${colDisplayName(arCols[ci])}</th>`);
+  if (ddayIdx >= 0) html += '<th>D-day</th>';
+  html += '</tr></thead><tbody>';
+
+  let totalRemain = 0;
+  data.forEach((row, ri) => {
+    const days = ddayIdx >= 0 ? getDday(row[ddayIdx]) : null;
+    const rowCls = days !== null ? (days < 0 ? 'overdue' : days <= 30 ? 'warn' : '') : '';
+    const isFirst = ri === 0;
+    html += `<tr class="${isFirst ? 'first-row' : rowCls}">`;
+    visibleColIdx.forEach((ci, vi) => {
+      const v = row[ci];
+      if (typeof v === 'number' && ci === remainIdx) totalRemain += (v || 0);
+      html += `<td class="${vi <= 1 ? 'left' : vi === 2 ? 'center' : ''}">${fmtCell(v, arCols[ci], ci)}</td>`;
+    });
+    if (ddayIdx >= 0) html += `<td class="center">${ddayBadge(days)}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+renderDashboard();
+DataStore.load().then(saved => {
+  if (saved) {
+    if (saved.advanceCols) advanceCols = saved.advanceCols;
+    if (saved.arCols) arCols = saved.arCols;
+    if (saved.advance) advanceData = saved.advance;
+    if (saved.ar) arData = saved.ar;
+    if (saved.advNote) document.getElementById('advanceNote').value = saved.advNote;
+    if (saved.arNote)  document.getElementById('arNote').value = saved.arNote;
+    renderDashboard();
+  }
+}).catch(() => {});
+
+// 노트 입력 시 자동 저장
+['advanceNote','arNote'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    DataStore.save({
+      advance: advanceData, ar: arData, advanceCols, arCols,
+      advNote: document.getElementById('advanceNote').value,
+      arNote:  document.getElementById('arNote').value
+    }).catch(() => {});
+  });
+});
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

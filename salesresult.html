@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실적보고 | 해외영업팀 주간보고</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 40px;max-width:1600px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+.upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
+.upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
+.upload-fname{font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;margin-bottom:12px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.card-title{font-size:18px;font-weight:700;color:#0f2952;}
+.card-sub{font-size:12px;color:#94a3b8;}
+.tbl-wrap{overflow-x:auto;}
+
+/* Summary table (section 1) */
+.data-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.data-tbl th{background:#f3f6fb;padding:6px 8px;font-weight:600;color:#374151;border:1px solid #d1d9e6;text-align:center;white-space:nowrap;}
+.data-tbl td{padding:6px 8px;border:1px solid #e8edf5;color:#1e293b;text-align:right;white-space:nowrap;}
+.data-tbl td.left{text-align:left;}
+.data-tbl td.up{color:#16a34a;font-weight:600;}
+.data-tbl td.down{color:#dc2626;font-weight:600;}
+.data-tbl td.red{color:#dc2626;font-weight:700;}
+.data-tbl tr.total-row{background:#f8fafc;}
+.data-tbl tr.total-row td{font-weight:700;border-top:2px solid #cbd5e1;}
+
+/* Section 1 column colors */
+.th-target{background:#dbeafe!important;color:#1e40af!important;}
+.th-actual25{background:#fef9c3!important;color:#854d0e!important;}
+.th-order26{background:#dcfce7!important;color:#166534!important;}
+.th-nego{background:#fce7f3!important;color:#9d174d!important;}
+.td-target{background:#eff6ff;}
+.td-actual25{background:#fffde7;}
+.td-order26{background:#f0fdf4;}
+.td-nego{background:#fdf2f8;}
+
+/* Product table */
+.ptbl{width:100%;border-collapse:collapse;font-size:13px;}
+.ptbl th{padding:6px 8px;font-weight:600;border:1px solid #d1d9e6;text-align:center;white-space:nowrap;background:#f3f6fb;color:#374151;}
+.ptbl td{padding:5px 8px;border:1px solid #e8edf5;text-align:right;white-space:nowrap;color:#1e293b;}
+.ptbl td.lbl{text-align:left;font-weight:700;white-space:nowrap;}
+.ptbl td.sub{background:#fffde7;font-weight:700;}
+.ptbl td.chg{background:#f0fdf4;font-weight:600;}
+.ptbl td.ytd{background:#f8fafc;}
+.ptbl tr.kusa-row td{background:#f0f7ff;}
+.ptbl tr.kusa-row td.sub{background:#dbeafe;}
+.ptbl tr.kusa-row td.chg{background:#dcfce7;}
+.ptbl tr.kusa-row td.ytd{background:#eff6ff;}
+.ptbl tr.total-row{background:#f8fafc;}
+.ptbl tr.total-row td{font-weight:700;border-top:2px solid #cbd5e1;}
+.table-note{font-size:12px;color:#94a3b8;text-align:right;margin:-2px 0 6px;}
+.order-dashboard{display:grid;grid-template-columns:minmax(620px,0.95fr) minmax(360px,1.05fr);gap:14px;align-items:start;}
+.order-table-wrap{overflow-x:auto;}
+.order-flow{display:grid;grid-template-rows:repeat(3,1fr);gap:10px;min-width:0;}
+.flow-chart{border:1px solid #e2e8f0;border-radius:8px;background:#fbfdff;padding:10px 12px;min-height:132px;}
+.flow-chart-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;}
+.flow-title{font-size:13px;font-weight:700;color:#0f2952;}
+.flow-total{font-size:12px;color:#64748b;font-weight:600;}
+.flow-svg{width:100%;height:78px;display:block;overflow:visible;}
+.flow-axis{stroke:#e2e8f0;stroke-width:1;}
+.flow-line{fill:none;stroke:#1e5ba8;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.flow-area{fill:#dbeafe;opacity:.55;}
+.flow-point{fill:#1e5ba8;stroke:white;stroke-width:1.5;}
+.flow-months{display:grid;grid-template-columns:repeat(12,1fr);font-size:10px;color:#94a3b8;text-align:center;margin-top:2px;}
+.flow-empty{display:flex;align-items:center;justify-content:center;height:78px;color:#94a3b8;font-size:12px;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7;}
+@media (max-width:1100px){.order-dashboard{grid-template-columns:1fr;}.order-flow{grid-template-rows:none;}}
+.editable-num{display:block;outline:none;cursor:text;min-width:55px;width:100%;text-align:right;}
+.editable-num:hover{background:#dbeafe;border-radius:3px;}
+.editable-num:focus{background:#eff6ff;border-radius:3px;outline:1px solid #3b82f6;}
+
+/* Annual target edit */
+.annual-cell{cursor:pointer;color:#1e40af;font-weight:700;}
+.annual-cell:hover{background:#dbeafe!important;}
+.annual-cell:focus{outline:1px solid #0f2952;background:#eff6ff!important;}
+.save-status{font-size:12px;color:#94a3b8;margin-left:8px;}
+.save-status.saving{color:#f59e0b;}
+.save-status.saved{color:#16a34a;}
+@media print{.site-header,.site-nav,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;margin-bottom:10px;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">현재 페이지 인쇄</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html" class="active">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">해외영업팀 주간 실적 보고</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="upload-fname" id="uploadFname"></span>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">↑ 파일 업로드</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+      <span class="save-status" id="saveStatus"></span>
+    </div>
+  </div>
+
+  <!-- 1. 주간 실적 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">1. 해외 영업 주간 실적</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:13px;color:#64748b;font-weight:500;">보고 월</span>
+          <select id="selYear" onchange="changeMonth()" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;"></select>
+          <select id="selMonth" onchange="changeMonth()" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;"></select>
+        </div>
+        <span class="card-sub">연간목표 셀 클릭 수정 가능</span>
+      </div>
+    </div>
+    <div class="tbl-wrap" id="summaryTableWrapper"></div>
+  </div>
+
+  <!-- 2. 줄자 출고 실적 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">2. 2026년 줄자 출고 실적</span>
+      <span class="card-sub">월 실적마감 후 업로드 · KUSA 현지 실적 자동 반영</span>
+    </div>
+    <div class="tbl-wrap" id="juljaTable"></div>
+  </div>
+
+  <!-- 3. 톱 출고 실적 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">3. 2026년 톱 출고 실적</span>
+      <span class="card-sub">월 실적마감 후 업로드 · KUSA 현지 실적 자동 반영</span>
+    </div>
+    <div class="tbl-wrap" id="sawTable"></div>
+  </div>
+
+  <!-- 4. 커터 출고 실적 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">4. 2026년 커터 출고 실적</span>
+      <span class="card-sub">월 실적마감 후 업로드 · KUSA 현지 실적 자동 반영</span>
+    </div>
+    <div class="tbl-wrap" id="cutterTable"></div>
+  </div>
+
+  <!-- 5. 네고 실적 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">5. 2026년 네고 실적</span>
+      <span class="card-sub">셀 클릭하여 직접 입력 · 자동저장</span>
+    </div>
+    <div class="tbl-wrap" id="negoResultTable"></div>
+  </div>
+
+  <!-- 6. Order 현황 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">6. Order 현황</span>
+    </div>
+    <div class="order-table-wrap">
+      <div class="table-note">오더 접수 현황 파일 업로드 · 단위: 달러</div>
+      <div id="orderStatusTable"></div>
+    </div>
+  </div>
+
+  <!-- 7. 시각화 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">7. 시각화</span>
+      <span class="card-sub">2·3·4번 출고 실적 월별 흐름</span>
+    </div>
+    <div class="order-flow" id="productFlowCharts"></div>
+  </div>
+
+</main>
+
+<script>
+// ── 상수 ──
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const S25 = 58; // Stamt101 (2025년 1월)
+const S26 = 70; // Stamt201 (2026년 1월)
+const JULJA_ITEMS = new Set(['S/P','L/T','F/G','측정공구','줄자','유광직자','수평기','레이저메타']);
+const SAW_GRP2   = new Set(['SANZ','CASTELLARI S.R.L.','JAN GERICKE']);
+
+// ── 상태 ──
+let rawData = null;
+let annualTargets = { '줄자': 46403481, '톱': 1345000, '커터': 237000 };
+let summaryData   = {};
+let negoResult    = Array(12).fill(0); // 5번 네고실적 월별 데이터
+let orderReports  = {};
+let kusaManual = {
+  julja:  { m26: Array(12).fill(0), m25sum: 0 },
+  saw:    { m26: Array(12).fill(0), m25sum: 0 },
+  cutter: { m26: Array(12).fill(0), m25sum: 0 },
+};
+
+// ── 월 선택 ──
+const _now = new Date();
+let selYear  = _now.getFullYear();
+let selMonth = _now.getMonth() + 1;
+
+function getYMKey() {
+  return `${selYear}-${String(selMonth).padStart(2,'0')}`;
+}
+
+const DS_config  = createDataStore('page2_config');
+const DS_summary = () => createDataStore('page2_' + getYMKey());
+
+// ── 월 선택기 초기화 ──
+(function initSelectors() {
+  const sy = document.getElementById('selYear');
+  const sm = document.getElementById('selMonth');
+  for (let y = 2025; y <= 2027; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y + '년';
+    if (y === selYear) o.selected = true;
+    sy.appendChild(o);
+  }
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m + '월';
+    if (m === selMonth) o.selected = true;
+    sm.appendChild(o);
+  }
+})();
+
+async function changeMonth() {
+  selYear  = parseInt(document.getElementById('selYear').value);
+  selMonth = parseInt(document.getElementById('selMonth').value);
+  summaryData = {};
+  const saved = await DS_summary().load().catch(()=>null);
+  if (saved && saved.summaryData) summaryData = saved.summaryData;
+  renderAll();
+}
+
+// ── 파일 업로드 ──
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  const fn = document.getElementById('uploadFname');
+  if (fn) fn.textContent = files.length > 1 ? `📄 ${files.length}개 파일` : `📄 ${files[0].name}`;
+  Array.from(files).forEach(handleFile);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, { type: 'array' });
+    if (file.name.includes('오더 접수 현황')) {
+      importOrderReport(wb, file.name);
+      renderAll();
+      scheduleSave();
+      return;
+    }
+    if (file.name.toUpperCase().includes('MONTHLY REPORT')) {
+      kusaManual.julja.m26 = extractMonthlyReportKusa(wb, selYear);
+      renderAll();
+      scheduleSave();
+      return;
+    }
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    // 실적.xlsx 형식인지 확인 (헤더 첫 컬럼 = Itclsnm)
+    if (rows[0] && String(rows[0][0]).includes('Itclsnm')) {
+      rawData = extractJisik(rows);
+    } else {
+      rawData = extractLegacy(rows);
+    }
+    renderAll();
+    scheduleSave();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// MONTHLY REPORT: TOTALS 시트 A열 DATE 기준으로 K열 TOTAL $를 월별 합산
+function extractMonthlyReportKusa(wb, year) {
+  const ws = wb.Sheets['TOTALS'] || wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  const monthly = Array(12).fill(0);
+
+  rows.slice(1).forEach(row => {
+    const dateInfo = parseExcelDate(row[0]);
+    if (!dateInfo || dateInfo.year !== year) return;
+    monthly[dateInfo.month - 1] += parseNum(row[10]);
+  });
+
+  return monthly;
+}
+
+function parseExcelDate(value) {
+  if (value instanceof Date && !isNaN(value)) {
+    return { year: value.getFullYear(), month: value.getMonth() + 1 };
+  }
+
+  if (typeof value === 'number') {
+    const parsed = XLSX.SSF && XLSX.SSF.parse_date_code
+      ? XLSX.SSF.parse_date_code(value)
+      : null;
+    if (parsed) return { year: parsed.y, month: parsed.m };
+
+    const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+    if (!isNaN(date)) return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
+  }
+
+  const text = String(value || '').trim();
+  if (!text) return null;
+  const date = new Date(text);
+  if (!isNaN(date)) return { year: date.getFullYear(), month: date.getMonth() + 1 };
+  return null;
+}
+
+function importOrderReport(wb, fileName) {
+  const match = fileName.match(/(20\d{2})[.\-_ ]?(\d{1,2})/);
+  const year = match ? parseInt(match[1], 10) : selYear;
+  const month = match ? parseInt(match[2], 10) : selMonth;
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).slice(1);
+  const report = createEmptyOrderReport();
+
+  rows.forEach(row => {
+    const amount = parseNum(row[20]);
+    if (!amount) return;
+    const key = classifyOrderRow(row);
+    if (!key) return;
+    const confirmed = String(row[23] || '').trim() === '확정';
+    report[key].order += amount;
+    if (confirmed) report[key].confirmed += amount;
+    else report[key].unconfirmed += amount;
+  });
+
+  orderReports[ym] = report;
+}
+
+function createEmptyOrderReport() {
+  return {
+    kusa: { order: 0, confirmed: 0, unconfirmed: 0 },
+    northDirect: { order: 0, confirmed: 0, unconfirmed: 0 },
+    memo: { order: 0, confirmed: 0, unconfirmed: 0 },
+    europeDirect: { order: 0, confirmed: 0, unconfirmed: 0 },
+    japan: { order: 0, confirmed: 0, unconfirmed: 0 },
+    oceania: { order: 0, confirmed: 0, unconfirmed: 0 },
+    latin: { order: 0, confirmed: 0, unconfirmed: 0 },
+    middleAfrica: { order: 0, confirmed: 0, unconfirmed: 0 },
+    asia: { order: 0, confirmed: 0, unconfirmed: 0 },
+    other: { order: 0, confirmed: 0, unconfirmed: 0 },
+  };
+}
+
+function classifyOrderRow(row) {
+  const area = String(row[0] || '').trim();
+  const buyer = String(row[1] || '').trim().toLowerCase();
+  if (buyer.includes('grainger')) return 'northDirect';
+  if (area === 'K-USA') return 'kusa';
+  if (buyer.includes('memo')) return 'memo';
+  if (area === 'Europe') return 'europeDirect';
+  if (area === 'Japan') return 'japan';
+  if (area === 'Oceania') return 'oceania';
+  if (area === 'Latin America') return 'latin';
+  if (area === 'Middle East' || area === 'Africa') return 'middleAfrica';
+  if (area === 'Asia') return 'asia';
+  return 'other';
+}
+
+// ── 실적.xlsx 파싱 ──
+function extractJisik(rows) {
+  const init12 = () => Array(12).fill(0);
+  const r = {
+    julja:  { r25: { '일본': init12(), '유럽': init12(), '오세아니아': init12(), '기타지역': init12() },
+               r26: { '일본': init12(), '유럽': init12(), '오세아니아': init12(), '기타지역': init12() } },
+    saw:    { r25: { '산즈/카스텔라리/남아공': init12(), '기타': init12() },
+               r26: { '산즈/카스텔라리/남아공': init12(), '기타': init12() } },
+    cutter: { r25: { '유럽/기타지역': init12() },
+               r26: { '유럽/기타지역': init12() } },
+  };
+
+  rows.slice(1).forEach(row => {
+    const itcls = String(row[0]||'').trim();
+    const area  = String(row[2]||'').trim();
+    const cvnas = String(row[4]||'').trim();
+    if (area === 'K-USA') return;
+    if (area.toLowerCase() === 'china') return;
+
+    const a25 = row.slice(S25, S25+12).map(v => Number(v)||0);
+    const a26 = row.slice(S26, S26+12).map(v => Number(v)||0);
+    const add = (r25obj, r26obj, key) => {
+      for (let i=0;i<12;i++) { r25obj[key][i]+=a25[i]; r26obj[key][i]+=a26[i]; }
+    };
+
+    if (JULJA_ITEMS.has(itcls)) {
+      const k = area==='Japan' ? '일본'
+              : (area==='K-EU'||area==='Europe') ? '유럽'
+              : area==='Oceania' ? '오세아니아'
+              : '기타지역';
+      add(r.julja.r25, r.julja.r26, k);
+    }
+
+    if (itcls.toUpperCase().includes('SAW')) {
+      const k = SAW_GRP2.has(cvnas) ? '산즈/카스텔라리/남아공' : '기타';
+      add(r.saw.r25, r.saw.r26, k);
+    }
+
+    if (itcls.toUpperCase().includes('CUTTER')) {
+      add(r.cutter.r25, r.cutter.r26, '유럽/기타지역');
+    }
+  });
+
+  return r;
+}
+
+// ── 레거시 형식 파싱 (이전 주간실적 엑셀) ──
+function extractLegacy(rows) {
+  // 섹션1 summary용 기존 파싱 유지
+  let section = null;
+  const sd = {};
+  rows.forEach(row => {
+    const rs = row.join(' ');
+    if (rs.includes('해외 영업 주간 실적')||rs.includes('주간실적')) section='summary';
+    if (section==='summary') {
+      ['줄자','톱','커터'].forEach(cat => {
+        if (row[0] && String(row[0]).includes(cat)) {
+          sd[cat] = {
+            actual2025: parseNum(row[4]),
+            order2026:  parseNum(row[5]),
+            negoTarget: parseNum(row[8]),
+            negoDone:   parseNum(row[9]),
+            negoWeek2:  parseNum(row[10]),
+          };
+        }
+      });
+    }
+  });
+  summaryData = sd;
+  return null;
+}
+
+// ── 섹션1: 주간 실적 테이블 ──
+function renderSummaryTable() {
+  const cats = ['줄자','톱','커터'];
+  const labels = { '줄자':'줄자(+MW)', '톱':'톱', '커터':'커터' };
+
+  let html = `<table class="data-tbl">
+  <thead>
+    <tr>
+      <th rowspan="2" style="min-width:80px;">구분</th>
+      <th colspan="3" class="th-target">2026년 목표</th>
+      <th rowspan="2" class="th-actual25" style="min-width:90px;">2025년<br>${selMonth}월 실적</th>
+      <th colspan="3" class="th-order26">2026년 (수주)</th>
+      <th rowspan="2" class="th-nego" style="min-width:80px;">${selMonth}월<br>네고 계획</th>
+      <th colspan="3" class="th-nego">${selMonth}월 네고 현황</th>
+    </tr>
+    <tr>
+      <th class="th-target" style="min-width:100px;">연간목표</th>
+      <th class="th-target" style="min-width:90px;">상반기목표</th>
+      <th class="th-target" style="min-width:90px;">월 목표</th>
+      <th class="th-order26" style="min-width:100px;">${selMonth}월 오더금액</th>
+      <th class="th-order26">전년대비</th>
+      <th class="th-order26">목표 대비</th>
+      <th class="th-nego" style="min-width:80px;">네고 완료</th>
+      <th class="th-nego" style="min-width:90px;">${selMonth}월 둘째주<br>계획</th>
+      <th class="th-nego" style="min-width:80px;">잔여네고<br>계획</th>
+    </tr>
+  </thead><tbody>`;
+
+  cats.forEach(key => {
+    const annual  = annualTargets[key]||0;
+    const half    = annual/2;
+    const monthly = annual/12;
+    const s = summaryData[key]||{};
+    const a25  = s.actual2025||0;
+    const o26  = s.order2026||0;
+    const nTgt = s.negoTarget||0;
+    const nDone= s.negoDone||0;
+    const nW2  = s.negoWeek2||0;
+    const nLeft= nTgt - nDone;
+    const vsLY  = a25>0 ? Math.round(o26/a25*100)+'%' : '-';
+    const vsTgt = monthly>0 ? Math.round(o26/monthly*100)+'%' : '-';
+    const vsTgtN= monthly>0 ? o26/monthly*100 : 0;
+
+    const editCell = (field, val, extraCls='') =>
+      `<td class="td-nego ${extraCls}" contenteditable="true"
+          onblur="saveSummaryField('${key}','${field}',this)"
+          onfocus="this.textContent=(summaryData['${key}']&&summaryData['${key}']['${field}'])||''"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+          style="cursor:text;">${val?fmtD(val):''}</td>`;
+
+    html += `<tr>
+      <td class="left" style="font-weight:700;">${labels[key]}</td>
+      <td class="td-target annual-cell" contenteditable="true"
+          onblur="saveAnnualTarget('${key}',this)"
+          onfocus="this.textContent=annualTargets['${key}']||''"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+          title="클릭하여 수정">${annual?fmtD(annual):'클릭하여 입력'}</td>
+      <td class="td-target">${half?fmtD(half):'-'}</td>
+      <td class="td-target">${monthly?fmtD(Math.round(monthly)):'-'}</td>
+      <td class="td-actual25">${fmtD(a25)}</td>
+      <td class="td-order26" style="font-weight:700;">${fmtD(o26)}</td>
+      <td class="td-order26">${vsLY}</td>
+      <td class="td-order26 ${vsTgtN>=100?'up':vsTgtN>0?'down':''}">${vsTgt}</td>
+      ${editCell('negoTarget', nTgt)}
+      ${editCell('negoDone',   nDone)}
+      ${editCell('negoWeek2',  nW2)}
+      <td class="td-nego ${nLeft>0?'red':''}">${nLeft>0?fmtD(nLeft):'-'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('summaryTableWrapper').innerHTML = html;
+}
+
+function saveAnnualTarget(key, cell) {
+  annualTargets[key] = parseFloat(String(cell.textContent).replace(/[^0-9.]/g,''))||0;
+  renderSummaryTable();
+  scheduleSave();
+}
+
+function saveSummaryField(key, field, cell) {
+  const val = parseFloat(String(cell.textContent).replace(/[^0-9.]/g,''))||0;
+  if (!summaryData[key]) summaryData[key] = {};
+  summaryData[key][field] = val;
+  cell.textContent = val ? fmtD(val) : '';
+  // 잔여네고 재계산
+  const s = summaryData[key];
+  const nLeft = (s.negoTarget||0) - (s.negoDone||0);
+  const row = cell.closest('tr');
+  const lastTd = row.querySelector('td:last-child');
+  lastTd.textContent = nLeft > 0 ? fmtD(nLeft) : '-';
+  lastTd.className = 'td-nego' + (nLeft > 0 ? ' red' : '');
+  scheduleSave();
+}
+
+// ── 섹션 2-4: 출고 실적 테이블 ──
+function renderProductTable(tableId, prodKey, regions, subLabel='') {
+  const data = rawData ? rawData[prodKey] : null;
+  let tot26 = Array(12).fill(0);
+  let tot25sum = 0;
+
+  const rows = regions.map(({ key, label, isManual }) => {
+    let m26, sum25;
+    if (isManual) {
+      m26   = [...kusaManual[prodKey].m26];
+      sum25 = kusaManual[prodKey].m25sum;
+    } else {
+      m26   = data ? [...(data.r26[key]||Array(12).fill(0))] : Array(12).fill(0);
+      sum25 = data ? (data.r25[key]||[]).reduce((a,b)=>a+b,0) : 0;
+    }
+    const sum26 = m26.reduce((a,b)=>a+b,0);
+    const chg   = sum25>0 ? (sum26/sum25-1)*100 : null;
+    for(let i=0;i<12;i++) tot26[i]+=m26[i];
+    tot25sum += sum25;
+    return { key, label, isManual, m26, sum25, sum26, chg };
+  });
+
+  const tSum26 = tot26.reduce((a,b)=>a+b,0);
+  const tChg   = tot25sum>0 ? (tSum26/tot25sum-1)*100 : null;
+
+  let html = `<table class="ptbl">
+    <thead><tr>
+      <th class="left" style="min-width:140px;">지역</th>
+      ${MONTHS.map(m=>`<th style="min-width:72px;">${m}</th>`).join('')}
+      <th style="background:#fef9c3;min-width:90px;">소계</th>
+      <th style="background:#dcfce7;min-width:60px;">증감</th>
+      <th style="background:#f1f5f9;min-width:90px;">2025YTD</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(({ key, label, isManual, m26, sum25, sum26, chg }) => {
+    const rowCls = isManual ? ' class="kusa-row"' : '';
+    const chgCls = chg!==null ? (chg>0?'up':'down') : '';
+    const displayLabel = isManual && subLabel
+      ? label + ' <span style="font-size:10px;color:#64748b;font-weight:400;">(' + subLabel + ')</span>'
+      : label;
+    html += `<tr${rowCls}>
+      <td class="lbl">${displayLabel}</td>
+      ${m26.map(v => `<td>${v?fmtD(v):'-'}</td>`).join('')}
+      <td class="sub">${sum26?fmtD(sum26):'-'}</td>
+      <td class="chg ${chgCls}">${chg!==null?(chg>0?'+':'')+chg.toFixed(1)+'%':'-'}</td>
+      <td class="ytd">${sum25?fmtD(sum25):'-'}</td>
+    </tr>`;
+  });
+
+  // 총계
+  html += `<tr class="total-row">
+    <td class="lbl">총계</td>
+    ${tot26.map(v=>`<td>${v?fmtD(v):'-'}</td>`).join('')}
+    <td class="sub">${tSum26?fmtD(tSum26):'-'}</td>
+    <td class="chg ${tChg!==null?(tChg>0?'up':'down'):''}">${tChg!==null?(tChg>0?'+':'')+tChg.toFixed(1)+'%':'-'}</td>
+    <td class="ytd">${tot25sum?fmtD(tot25sum):'-'}</td>
+  </tr>`;
+
+  html += '</tbody></table>';
+  document.getElementById(tableId).innerHTML = html;
+}
+
+function renderAllProductTables() {
+  renderProductTable('juljaTable', 'julja', [
+    { key:'KUSA',  label:'KUSA',  isManual:true  },
+    { key:'일본',  label:'일본',  isManual:false },
+    { key:'유럽',  label:'유럽',  isManual:false },
+    { key:'오세아니아', label:'오세아니아', isManual:false },
+    { key:'기타지역',   label:'기타지역',   isManual:false },
+  ], '줄자+톱+커터 현지실적');
+  renderProductTable('sawTable', 'saw', [
+    { key:'KUSA', label:'KUSA', isManual:true },
+    { key:'산즈/카스텔라리/남아공', label:'산즈/카스텔라리/남아공', isManual:false },
+    { key:'기타', label:'기타', isManual:false },
+  ], '본사출고');
+  renderProductTable('cutterTable', 'cutter', [
+    { key:'KUSA', label:'KUSA', isManual:true },
+    { key:'유럽/기타지역', label:'유럽/기타지역', isManual:false },
+  ], '베트남출고');
+}
+
+function renderNegoResultTable() {
+  const total = negoResult.reduce((a,b)=>a+b,0);
+  let html = `<table class="ptbl"><thead><tr>
+    <th class="left" style="min-width:100px;">지역</th>
+    ${MONTHS.map(m=>`<th style="min-width:80px;">${m}</th>`).join('')}
+    <th style="background:#fef9c3;min-width:100px;">소계</th>
+  </tr></thead><tbody><tr>
+    <td class="left" style="font-weight:700;">전품목포함</td>
+    ${negoResult.map((v,mi)=>`<td style="padding:2px 4px;">
+      <span class="editable-num" contenteditable="true"
+        onblur="saveNegoResult(this,${mi})"
+        onfocus="this.textContent=negoResult[${mi}]||''"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+      >${v?fmtD(v):''}</span></td>`).join('')}
+    <td style="background:#fef9c3;font-weight:700;">${total?fmtD(total):'-'}</td>
+  </tr></tbody></table>`;
+  document.getElementById('negoResultTable').innerHTML = html;
+}
+
+function saveNegoResult(el, mi) {
+  const val = parseFloat(String(el.textContent).replace(/[^0-9.]/g,''))||0;
+  negoResult[mi] = val;
+  el.textContent = val ? fmtD(val) : '';
+  // 소계 갱신
+  const total = negoResult.reduce((a,b)=>a+b,0);
+  el.closest('tr').querySelector('td:last-child').textContent = total ? fmtD(total) : '-';
+  scheduleSave();
+}
+
+function renderOrderStatusTable() {
+  const month = selMonth;
+  const prevYear = selYear - 1;
+  const curYear = selYear;
+  const prev = orderReports[`${prevYear}-${String(month).padStart(2,'0')}`] || createEmptyOrderReport();
+  const cur = orderReports[`${curYear}-${String(month).padStart(2,'0')}`] || createEmptyOrderReport();
+  const rows = [
+    { key:'kusa', label:'KUSA' },
+    { key:'northDirect', label:'북미직선적' },
+    { type:'subtotal', label:'소계', keys:['kusa','northDirect'] },
+    { key:'memo', label:'KEU(MEMO)' },
+    { key:'europeDirect', label:'유럽 직선적' },
+    { type:'subtotal', label:'소계', keys:['memo','europeDirect'] },
+    { key:'japan', label:'일본' },
+    { key:'oceania', label:'오세아니아' },
+    { key:'latin', label:'중남미' },
+    { key:'middleAfrica', label:'중동/아프리카' },
+    { key:'asia', label:'아시아' },
+    { type:'subtotal', label:'소계', keys:['japan','oceania','latin','middleAfrica','asia'] },
+    { type:'total', label:'총합계', keys:['kusa','northDirect','memo','europeDirect','japan','oceania','latin','middleAfrica','asia','other'] },
+  ];
+
+  const sum = (report, keys, field) => keys.reduce((total, key) => total + ((report[key] && report[key][field]) || 0), 0);
+  const rowVals = row => {
+    const keys = row.keys || [row.key];
+    return {
+      prevOrder: sum(prev, keys, 'order'),
+      curOrder: sum(cur, keys, 'order'),
+      confirmed: sum(cur, keys, 'confirmed'),
+      unconfirmed: sum(cur, keys, 'unconfirmed'),
+    };
+  };
+
+  let html = `<table class="ptbl">
+    <thead>
+      <tr>
+        <th rowspan="2" style="min-width:96px;">구분</th>
+        <th>${prevYear}</th>
+        <th style="background:#fef9c3;">${curYear}</th>
+        <th rowspan="2" style="min-width:96px;">${month}월 오더중<br>확정오더</th>
+        <th rowspan="2" style="min-width:96px;">${month}월 오더중<br>미확정오더</th>
+        <th rowspan="2" style="min-width:76px;">전년 대비<br>달성률</th>
+      </tr>
+      <tr>
+        <th>${month}월 오더</th>
+        <th style="background:#fef9c3;">${month}월 오더</th>
+      </tr>
+    </thead><tbody>`;
+
+  rows.forEach(row => {
+    const v = rowVals(row);
+    const pct = v.prevOrder > 0 ? Math.round(v.curOrder / v.prevOrder * 100) + '%' : '0%';
+    const cls = row.type === 'total' || row.type === 'subtotal' ? ' class="total-row"' : '';
+    html += `<tr${cls}>
+      <td class="lbl">${row.label}</td>
+      <td>${fmtD(v.prevOrder)}</td>
+      <td style="background:#fffde7;font-weight:600;">${fmtD(v.curOrder)}</td>
+      <td>${fmtD(v.confirmed)}</td>
+      <td>${fmtD(v.unconfirmed)}</td>
+      <td>${pct}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('orderStatusTable').innerHTML = html;
+}
+
+function renderProductFlowCharts() {
+  const charts = [
+    { prodKey:'julja', label:'2. 줄자 출고 흐름', color:'#1e5ba8' },
+    { prodKey:'saw', label:'3. 톱 출고 흐름', color:'#059669' },
+    { prodKey:'cutter', label:'4. 커터 출고 흐름', color:'#d97706' },
+  ];
+  document.getElementById('productFlowCharts').innerHTML = charts
+    .map(chart => renderFlowChart(chart.label, getProductMonthlyTotals(chart.prodKey), chart.color))
+    .join('');
+}
+
+function getProductMonthlyTotals(prodKey) {
+  const totals = Array(12).fill(0);
+  const add = values => values.forEach((v, i) => totals[i] += Number(v) || 0);
+  add(kusaManual[prodKey] ? kusaManual[prodKey].m26 : Array(12).fill(0));
+  if (!rawData || !rawData[prodKey]) return totals;
+
+  const regionKeys = {
+    julja: ['일본','유럽','오세아니아','기타지역'],
+    saw: ['산즈/카스텔라리/남아공','기타'],
+    cutter: ['유럽/기타지역'],
+  }[prodKey] || [];
+
+  regionKeys.forEach(key => add(rawData[prodKey].r26[key] || Array(12).fill(0)));
+  return totals;
+}
+
+function renderFlowChart(title, values, color) {
+  const width = 320;
+  const height = 78;
+  const padX = 8;
+  const top = 8;
+  const bottom = 64;
+  const max = Math.max(...values, 0);
+  const total = values.reduce((a,b)=>a+b,0);
+  const points = values.map((v, i) => {
+    const x = padX + (i * (width - padX * 2) / 11);
+    const y = max > 0 ? bottom - ((Number(v) || 0) / max) * (bottom - top) : bottom;
+    return { x, y, v };
+  });
+
+  if (!max) {
+    return `<div class="flow-chart">
+      <div class="flow-chart-head"><span class="flow-title">${title}</span><span class="flow-total">$0</span></div>
+      <div class="flow-empty">업로드 데이터 없음</div>
+      <div class="flow-months">${MONTHS.map(m=>`<span>${m.replace('월','')}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  const line = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area = `${padX},${bottom} ${line} ${width-padX},${bottom}`;
+  return `<div class="flow-chart">
+    <div class="flow-chart-head"><span class="flow-title">${title}</span><span class="flow-total">${fmtD(total)}</span></div>
+    <svg class="flow-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <line class="flow-axis" x1="${padX}" y1="${bottom}" x2="${width-padX}" y2="${bottom}"></line>
+      <polygon class="flow-area" points="${area}" style="fill:${color};opacity:.14;"></polygon>
+      <polyline class="flow-line" points="${line}" style="stroke:${color};"></polyline>
+      ${points.map(p=>`<circle class="flow-point" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" style="fill:${color};"><title>${fmtD(p.v)}</title></circle>`).join('')}
+    </svg>
+    <div class="flow-months">${MONTHS.map(m=>`<span>${m.replace('월','')}</span>`).join('')}</div>
+  </div>`;
+}
+
+function renderAll() {
+  renderSummaryTable();
+  renderAllProductTables();
+  renderNegoResultTable();
+  renderOrderStatusTable();
+  renderProductFlowCharts();
+}
+
+// ── 유틸 ──
+function parseNum(v) {
+  if (!v && v!==0) return 0;
+  const n = parseFloat(String(v).replace(/[,$%]/g,''));
+  return isNaN(n)?0:n;
+}
+function fmtD(n) {
+  if (!n) return '-';
+  return '$'+Math.round(Number(n)).toLocaleString('ko-KR');
+}
+
+// ── Firebase 저장 ──
+let saveTimer = null;
+function scheduleSave() {
+  const el = document.getElementById('saveStatus');
+  el.textContent='저장 중...'; el.className='save-status saving';
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    Promise.all([
+      DS_config.save({ annualTargets, kusaManual, rawData, negoResult, orderReports }),
+      DS_summary().save({ summaryData }),
+    ])
+      .then(()=>{ el.textContent='저장됨 ✓'; el.className='save-status saved'; setTimeout(()=>el.textContent='',2000); })
+      .catch(()=>{ el.textContent='저장 실패'; el.className='save-status'; });
+  }, 800);
+}
+
+// ── 초기 로드 ──
+renderAll();
+Promise.all([DS_config.load().catch(()=>null), DS_summary().load().catch(()=>null)])
+  .then(([cfg, sum]) => {
+    if (cfg) {
+      if (cfg.annualTargets) annualTargets = { ...annualTargets, ...cfg.annualTargets };
+      if (cfg.kusaManual)    kusaManual    = { ...kusaManual, ...cfg.kusaManual };
+      if (cfg.rawData)       rawData       = cfg.rawData;
+      if (cfg.negoResult)    negoResult    = cfg.negoResult;
+      if (cfg.orderReports)  orderReports  = cfg.orderReports;
+    }
+    if (sum && sum.summaryData) summaryData = sum.summaryData;
+    renderAll();
+  });
+
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

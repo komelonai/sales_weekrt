@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환율보고 | 해외영업팀 주간보고</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 40px;max-width:1500px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+.page-meta{font-size:13px;color:#64748b;}
+
+.upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
+.upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
+.upload-fname{font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Currency cards */
+.currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+.currency-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;display:flex;flex-direction:column;gap:6px;}
+.cc-top{display:flex;align-items:center;justify-content:space-between;}
+.cc-left{display:flex;align-items:center;gap:6px;}
+.cc-flag{font-size:18px;}
+.cc-name{font-size:15px;color:#64748b;font-weight:600;}
+.cc-value{font-size:24px;font-weight:700;}
+.cc-bottom{display:flex;align-items:center;justify-content:space-between;}
+.cc-change{font-size:12px;display:flex;align-items:center;gap:3px;}
+.cc-change.up{color:#16a34a;}
+.cc-change.down{color:#dc2626;}
+.cc-change.flat{color:#94a3b8;}
+.cc-cross{font-size:11px;color:#94a3b8;}
+
+/* Grid layout */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;margin-bottom:12px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.card-title{font-size:19px;font-weight:700;color:#0f2952;}
+.card-sub{font-size:12px;color:#94a3b8;}
+.chart-wrap{position:relative;height:200px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.grid3 .card{margin-bottom:0;}
+.chart-wrap-sm{position:relative;height:180px;}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;}
+.data-tbl{width:100%;border-collapse:collapse;font-size:15px;}
+.data-tbl th{background:#f3f6fb;padding:7px 10px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;}
+.data-tbl td{padding:7px 10px;border:1px solid #f1f5f9;color:#1e293b;text-align:right;white-space:nowrap;}
+.data-tbl td.left{text-align:left;font-weight:500;}
+.data-tbl td.up{color:#16a34a;}
+.data-tbl td.down{color:#dc2626;}
+.data-tbl tr:hover td{background:#fafbfc;}
+
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8;font-size:13px;}
+
+/* Cross rate */
+.cross-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;opacity:0.7;">주간 환율 정보</span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html" class="active">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">주간 환율 정보</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="page-meta" id="reportDate">작성일: 26/6/8</span>
+      <span class="upload-fname" id="uploadFname"></span>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">↑ 파일 업로드</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+    </div>
+  </div>
+
+  <div id="dashboard">
+
+    <!-- Currency KPI Cards -->
+    <div class="currency-grid" id="currencyCards"></div>
+
+    <!-- Weekly trend charts 1행: USD / JPY / EUR -->
+    <div class="grid3">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🇺🇸 미국 USD</span>
+          <span class="card-sub">주간 추이</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartWeekly_USD"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🇯🇵 일본 JPY 100</span>
+          <span class="card-sub">주간 추이</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartWeekly_JPY"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🇪🇺 유럽 EUR</span>
+          <span class="card-sub">주간 추이</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartWeekly_EUR"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Weekly trend charts 2행: CNY / VND / 연간 -->
+    <div class="grid3">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🇨🇳 중국 CNY</span>
+          <span class="card-sub">주간 추이</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartWeekly_CNY"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🇻🇳 베트남 VND 100</span>
+          <span class="card-sub">주간 추이</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartWeekly_VND"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">연간 평균 환율 추이</span>
+          <span class="card-sub">2020~2025</span>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="chartAnnual"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Weekly detail table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">주간 환율 상세 및 대미환산율</span>
+        <span class="card-sub">5주간</span>
+      </div>
+      <div class="tbl-wrap" id="weeklyTable"></div>
+    </div>
+
+    <!-- Monthly average table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">2026년 월별 평균 환율</span>
+        <span class="card-sub">대원화 기준</span>
+      </div>
+      <div class="tbl-wrap" id="monthlyTable"></div>
+    </div>
+
+    <!-- Cross rate -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">US$1 Cross Rate</span>
+        <span class="card-sub">VND · CNY</span>
+      </div>
+      <div class="tbl-wrap" id="crossRateTable"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// 엑셀 구조:
+// R1: No. | 일자 | 미국USD | 일본JPY | 유럽EUR | 중국CNY | 베트남VND | 대미환산율USD | 대미환산율JPY | 대미환산율EUR | 대미환산율CNY | 대미환산율VND
+// R2~: 1 | 2026.06.01 | 1503.2 | 943.21 | 1752.05 | 221.9 | 5.71 | 1 | 0.628 | ...
+
+const CURRENCIES = [
+  { key: 'USD', col: 2, name: '미국 USD',   flag: '🇺🇸', color: '#2563eb' },
+  { key: 'JPY', col: 3, name: '일본 JPY',   flag: '🇯🇵', color: '#dc2626' },
+  { key: 'EUR', col: 4, name: '유럽 EUR',   flag: '🇪🇺', color: '#16a34a' },
+  { key: 'CNY', col: 5, name: '중국 CNY',   flag: '🇨🇳', color: '#d97706' },
+  { key: 'VND', col: 6, name: '베트남 VND', flag: '🇻🇳', color: '#9333ea' }
+];
+
+// ── PDF 고정값 (26/6/8 기준) ──────────────────────────────────
+// 1) 주간 환율 (5월1주 ~ 6월1차)
+const PDF_WEEKLY = {
+  labels:   ['5월1주','5월2주','5월3주','5월4주','6월1차'],
+  USD:      [1465.73, 1482.04, 1504.04, 1507.15, 1514.68],
+  JPY:      [933.99,  940.49,  946.47,  946.47,  948.11],
+  EUR:      [1719.42, 1739.02, 1748.63, 1754.12, 1761.08],
+  CNY:      [215.04,  218.24,  220.96,  221.96,  223.98],
+  VND:      [5.57,    5.63,    5.70,    5.72,    5.75],
+  crossUSD: [1,       1,       1,       1,       1],
+  crossJPY: [0.6372,  0.6346,  0.6293,  0.6280,  0.6260],
+  crossEUR: [1.1731,  1.1734,  1.1626,  1.1639,  1.1627],
+  crossCNY: [0.1467,  0.1473,  0.1469,  0.1473,  0.1479],
+  crossVND: [0.0038,  0.0038,  0.0038,  0.0038,  0.0038],
+  rows: []
+};
+
+// 2) 26년 월별 평균 환율 (1~5월 고정, 6월~는 업로드 시 계산)
+const PDF_MONTHLY = {
+  USD: [1457.59, 1448.96, 1483.41, 1488.93, 1489.74, null, null, null, null, null, null, null],
+  JPY: [930.24,  932.89,  935.87,  934.26,  941.85,  null, null, null, null, null, null, null],
+  EUR: [1711.03, 1711.83, 1716.39, 1737.12, 1740.30, null, null, null, null, null, null, null],
+  CNY: [224.30,  209.71,  215.25,  217.42,  219.05,  null, null, null, null, null, null, null],
+  VND: [5.55,    5.57,    5.65,    5.65,    5.65,    null, null, null, null, null, null, null],
+};
+
+// 3) 연간 평균 환율 (2020~2025)
+const PDF_ANNUAL = {
+  years: ['2020','2021','2022','2023','2024','2025'],
+  USD: [1178.42, 1144.17, 1290.28, 1305.27, 1362.56, 1422.36],
+  JPY: [1103.84, 1041.95,  984.74,  931.39,  898.76,  950.58],
+  EUR: [1344.43, 1352.85, 1357.04, 1412.16, 1474.15, 1605.01],
+  CNY: [170.74,  177.34,  191.57,  184.17,  286.62,  205.04],
+  VND: [4.95,    4.94,    5.49,    5.48,    5.44,    5.47],
+};
+
+// 4) Cross Rate (5주간)
+const PDF_CROSS = {
+  VND: [26.3382, 26.3332, 26.3681, 26.3487, 26.3421],
+  CNY: [6.8160,  6.7909,  6.8068,  6.7901,  6.7625],
+};
+// ──────────────────────────────────────────────────────────────
+
+let charts = {};
+let uploadedData = null;
+
+/* ── DataStore: localStorage ↔ API 교체 지점 ──────────────────
+   서버 연동 시 save/load 내부만 fetch() 로 교체하면 됩니다.
+─────────────────────────────────────────────────────────────── */
+const DataStore = createDataStore('page3');
+
+
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  const fn = document.getElementById('uploadFname');
+  if (fn) fn.textContent = files.length > 1 ? `📄 ${files.length}개 파일` : `📄 ${files[0].name}`;
+
+  const promises = Array.from(files).map(f => new Promise(resolve => {
+    const r = new FileReader();
+    r.onload = e => resolve(XLSX.read(e.target.result, { type: 'array' }));
+    r.readAsArrayBuffer(f);
+  }));
+
+  Promise.all(promises).then(workbooks => {
+    // 여러 파일의 데이터 행을 날짜 기준으로 병합
+    let allRows = [];
+    workbooks.forEach(wb => {
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      const dataRows = rows.filter(r => typeof r[0] === 'number' || (String(r[0]).match(/^\d+$/) && r[1]));
+      allRows = allRows.concat(dataRows);
+    });
+    // 날짜 기준 정렬 + 중복 제거
+    const seen = new Set();
+    allRows = allRows
+      .filter(r => { const k = String(r[1]); if (seen.has(k)) return false; seen.add(k); return true; })
+      .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+    buildAndRender(allRows);
+  });
+}
+
+// ── 일별 데이터 → 주간 평균 집계 ──
+function computeWeeklyAverages(dataRows) {
+  const groups = new Map();
+
+  dataRows.forEach(r => {
+    const d = String(r[1]);
+    const m = d.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+    if (!m) return;
+    // 해당 날짜가 속한 주의 월요일 기준으로 묶기
+    const dt = new Date(+m[1], +m[2]-1, +m[3]);
+    const dow = dt.getDay(); // 0=일,1=월,...,6=토
+    if (dow === 0 || dow === 6) return; // 주말 제외
+    const toMon = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(dt);
+    monday.setDate(dt.getDate() + toMon);
+    const month = monday.getMonth() + 1;
+    const wn    = Math.ceil(monday.getDate() / 7);
+    const label = `${month}월${wn}주`;
+
+    if (!groups.has(label)) groups.set(label, {
+      USD:[], JPY:[], EUR:[], CNY:[], VND:[],
+      crossUSD:[], crossJPY:[], crossEUR:[], crossCNY:[], crossVND:[]
+    });
+    const g = groups.get(label);
+    const pushNonZero = (arr, v) => { const n = parseNum(v); if (n > 0) arr.push(n); };
+    pushNonZero(g.USD, r[2]);  pushNonZero(g.JPY, r[3]);
+    pushNonZero(g.EUR, r[4]);  pushNonZero(g.CNY, r[5]);
+    pushNonZero(g.VND, r[6]);
+    pushNonZero(g.crossUSD, r[7]);  pushNonZero(g.crossJPY, r[8]);
+    pushNonZero(g.crossEUR, r[9]);  pushNonZero(g.crossCNY, r[10]);
+    pushNonZero(g.crossVND, r[11]);
+  });
+
+  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const keys = [...groups.keys()];
+
+  return {
+    labels: keys, rows: dataRows,
+    USD: keys.map(k => avg(groups.get(k).USD)),
+    JPY: keys.map(k => avg(groups.get(k).JPY)),
+    EUR: keys.map(k => avg(groups.get(k).EUR)),
+    CNY: keys.map(k => avg(groups.get(k).CNY)),
+    VND: keys.map(k => avg(groups.get(k).VND)),
+    crossUSD: keys.map(k => avg(groups.get(k).crossUSD)),
+    crossJPY: keys.map(k => avg(groups.get(k).crossJPY)),
+    crossEUR: keys.map(k => avg(groups.get(k).crossEUR)),
+    crossCNY: keys.map(k => avg(groups.get(k).crossCNY)),
+    crossVND: keys.map(k => avg(groups.get(k).crossVND)),
+  };
+}
+
+function buildAndRender(dataRows) {
+  uploadedData = computeWeeklyAverages(dataRows);
+  renderDashboard(uploadedData);
+  DataStore.save(uploadedData).catch(e => console.warn('[DataStore] 저장 오류:', e));
+}
+
+// (parseWorkbook 제거됨 — handleFiles + buildAndRender로 대체)
+
+function parseNum(v) {
+  if (v === '' || v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(/[,$]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function renderDashboard(data) {
+  renderCurrencyCards(data);
+  renderWeeklyCharts(data);
+  renderMonthlyTable(data);
+  renderAnnualChart(data);
+  renderCrossRateTable(data);
+  renderWeeklyTable(data);
+}
+
+function renderCurrencyCards(data) {
+  const el = document.getElementById('currencyCards');
+  el.innerHTML = '';
+  CURRENCIES.forEach(cur => {
+    const vals = data[cur.key];
+    const latest = vals[vals.length - 1] || 0;
+    const prev = vals[vals.length - 2] || latest;
+    const diff = latest - prev;
+    const pct = prev > 0 ? ((diff / prev) * 100).toFixed(2) : '0.00';
+    const dir = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+    const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '─';
+    const crossKey = 'cross' + cur.key;
+    const crossLatest = data[crossKey] ? data[crossKey][data[crossKey].length - 1] : 0;
+
+    el.innerHTML += `
+    <div class="currency-card">
+      <div class="cc-top">
+        <div class="cc-left">
+          <span class="cc-flag">${cur.flag}</span>
+          <span class="cc-name">${cur.name}</span>
+        </div>
+        <div class="cc-change ${dir}">${arrow} ${Math.abs(diff).toFixed(2)} (${Math.abs(pct)}%)</div>
+      </div>
+      <div class="cc-value" style="color:${cur.color};">${latest ? latest.toLocaleString('ko-KR', {minimumFractionDigits:2,maximumFractionDigits:2}) : '-'}</div>
+      ${crossLatest ? `<div class="cc-cross">대미환산: ${crossLatest.toFixed(4)}</div>` : ''}
+    </div>`;
+  });
+}
+
+function renderWeeklyCharts(data) {
+  const labels = data.labels;
+  CURRENCIES.forEach(cur => {
+    const id = 'chartWeekly_' + cur.key;
+    destroyChart(id);
+    const vals = data[cur.key] || [];
+    const valid = vals.filter(v => v > 0);
+    if (!valid.length) return;
+    const min = Math.min(...valid);
+    const max = Math.max(...valid);
+    const pad = (max - min) * 0.15 || max * 0.02;
+
+    charts[id] = new Chart(document.getElementById(id).getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: vals,
+          borderColor: cur.color,
+          backgroundColor: cur.color + '18',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: cur.color,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          tension: 0.35,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: { label: ctx => ctx.parsed.y.toLocaleString('ko-KR', {minimumFractionDigits:2,maximumFractionDigits:2}) + ' 원' }
+        }},
+        scales: {
+          y: {
+            min: Math.floor(min - pad),
+            max: Math.ceil(max + pad),
+            ticks: { font: { size: 9 }, maxTicksLimit: 4, callback: v => v.toLocaleString() },
+            grid: { color: '#f1f5f9' }
+          },
+          x: { ticks: { font: { size: 9 }, maxRotation: 0 }, grid: { display: false } }
+        }
+      }
+    });
+  });
+}
+
+function renderMonthlyTable(data) {
+  // PDF 고정값(1~5월) + 업로드 데이터로 6월~ 평균 계산
+  const el = document.getElementById('monthlyTable');
+  const merged = { USD:[...PDF_MONTHLY.USD], JPY:[...PDF_MONTHLY.JPY], EUR:[...PDF_MONTHLY.EUR], CNY:[...PDF_MONTHLY.CNY], VND:[...PDF_MONTHLY.VND] };
+
+  if (data && data.rows && data.rows.length) {
+    const byMonth = {};
+    data.rows.forEach(r => {
+      const d = String(r[1]);
+      const m = d.match(/\.(\d{2})\./);
+      if (!m) return;
+      const mo = parseInt(m[1]) - 1; // 0-indexed
+      if (!byMonth[mo]) byMonth[mo] = { USD:[], JPY:[], EUR:[], CNY:[], VND:[] };
+      CURRENCIES.forEach(cur => byMonth[mo][cur.key].push(parseNum(r[cur.col])));
+    });
+    const avg = v => v.length ? (v.reduce((a,b)=>a+b,0)/v.length) : null;
+    Object.keys(byMonth).forEach(mo => {
+      const idx = parseInt(mo);
+      if (idx >= 5) { // 6월 이후만 업데이트 (0-indexed 5 = 6월)
+        CURRENCIES.forEach(cur => { merged[cur.key][idx] = avg(byMonth[mo][cur.key]); });
+      }
+    });
+  }
+
+  const MONTH_LABELS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const activeCols = MONTH_LABELS.map((_, i) => merged.USD[i] != null);
+
+  let html = '<table class="data-tbl"><thead><tr><th>통화</th>';
+  MONTH_LABELS.forEach((m, i) => { if (activeCols[i]) html += `<th>${m}</th>`; });
+  html += '</tr></thead><tbody>';
+  CURRENCIES.forEach(cur => {
+    html += `<tr><td class="left">${cur.name}</td>`;
+    merged[cur.key].forEach((v, i) => {
+      if (!activeCols[i]) return;
+      html += `<td>${v != null ? v.toLocaleString('ko-KR', {minimumFractionDigits:2,maximumFractionDigits:2}) : '-'}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderAnnualChart(data) {
+  destroyChart('chartAnnual');
+  const ctx = document.getElementById('chartAnnual').getContext('2d');
+  const pointStyles = ['circle', 'rect', 'triangle', 'cross', 'star'];
+  charts['chartAnnual'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: PDF_ANNUAL.years,
+      datasets: CURRENCIES.map((cur, i) => ({
+        label: cur.name,
+        data: PDF_ANNUAL[cur.key],
+        borderColor: cur.color,
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        pointStyle: pointStyles[i],
+        pointRadius: 5,
+        pointBorderColor: cur.color,
+        pointBackgroundColor: cur.color,
+        tension: 0.3,
+        fill: false
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 10 }, boxWidth: 14, padding: 8, usePointStyle: true }
+        },
+        tooltip: {
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('ko-KR', {minimumFractionDigits:2, maximumFractionDigits:2})}` }
+        }
+      },
+      scales: {
+        y: {
+          min: 0,
+          ticks: { font: { size: 9 }, maxTicksLimit: 7, callback: v => v.toLocaleString() },
+          grid: { color: '#e2e8f0' }
+        },
+        x: { ticks: { font: { size: 10 } }, grid: { color: '#e2e8f0' } }
+      }
+    }
+  });
+}
+
+function renderCrossRateTable(data) {
+  // USD 1달러 기준 해당 통화 환산값 계산
+  // VND: KRW/USD ÷ (KRW/VND100) ÷ 10  → 천VND 단위 (예: 26.3421)
+  // CNY: KRW/USD ÷ KRW/CNY             → CNY 단위 (예: 6.7625)
+  const el = document.getElementById('crossRateTable');
+  const labels = (data && data.labels && data.labels.length) ? data.labels : PDF_WEEKLY.labels;
+
+  let vndVals, cnyVals;
+  if (data && data.USD && data.USD.length && data.VND && data.VND.length && data.CNY && data.CNY.length) {
+    vndVals = data.USD.map((usd, i) => (usd && data.VND[i]) ? usd / data.VND[i] / 10 : 0);
+    cnyVals = data.USD.map((usd, i) => (usd && data.CNY[i]) ? usd / data.CNY[i] : 0);
+  } else {
+    vndVals = PDF_CROSS.VND;
+    cnyVals = PDF_CROSS.CNY;
+  }
+
+  let html = '<table class="data-tbl"><thead><tr><th>US$1 Cross Rate</th>';
+  labels.forEach(l => html += `<th>${l}</th>`);
+  html += '</tr></thead><tbody>';
+  [{ name: '베트남 동(VND 100)', vals: vndVals }, { name: '중국 CNY(RMB)', vals: cnyVals }].forEach(row => {
+    html += `<tr><td class="left">${row.name}</td>`;
+    labels.forEach((_, i) => { html += `<td>${row.vals[i] ? row.vals[i].toFixed(4) : '-'}</td>`; });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderWeeklyTable(data) {
+  const el = document.getElementById('weeklyTable');
+  const labels = data.labels;
+
+  const rowDefs = [
+    { label: '미국 USD',           rateKey: 'USD', crossKey: 'crossUSD' },
+    { label: '일본 JPY 100',       rateKey: 'JPY', crossKey: 'crossJPY' },
+    { label: '유럽 EUR',           rateKey: 'EUR', crossKey: 'crossEUR' },
+    { label: '중국 CNY',           rateKey: 'CNY', crossKey: 'crossCNY' },
+    { label: '베트남 동(VND 100)', rateKey: 'VND', crossKey: 'crossVND' },
+  ];
+
+  function buildTable(sectionTitle, valueKey, decimals) {
+    let html = `<div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:600;color:#0f2952;padding:6px 0 5px;">${sectionTitle}</div>
+      <table class="data-tbl"><thead><tr><th class="left">통화</th>`;
+    labels.forEach(l => html += `<th>${l}</th>`);
+    html += '</tr></thead><tbody>';
+    rowDefs.forEach(row => {
+      const vals = data[row[valueKey]] || [];
+      html += `<tr><td class="left">${row.label}</td>`;
+      vals.forEach((v, i) => {
+        const prev = vals[i - 1];
+        const dir = i > 0 && prev != null ? (v > prev ? 'up' : v < prev ? 'down' : '') : '';
+        const fmt = decimals === 4
+          ? (v ? v.toFixed(4) : '-')
+          : (v ? v.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-');
+        html += `<td class="${dir}">${fmt}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  el.innerHTML = buildTable('1. 주간 환율 추이', 'rateKey', 2)
+               + buildTable('2. 주간 대미환산율', 'crossKey', 4);
+
+  const card = el.closest('.card');
+  if (card && labels.length) {
+    card.querySelector('.card-sub').textContent = `${labels[0]} ~ ${labels[labels.length - 1]}`;
+  }
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// 페이지 로드 시 PDF 고정값으로 즉시 렌더 → Firestore에 저장된 데이터 있으면 덮어씀
+renderDashboard(PDF_WEEKLY);
+DataStore.load().then(saved => {
+  if (saved) { uploadedData = saved; renderDashboard(saved); }
+}).catch(() => {});
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

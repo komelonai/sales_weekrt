@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANZ관리 | 해외영업팀 주간보고</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 40px;max-width:1700px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+
+.upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
+.upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
+.upload-fname{font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.kpi-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:11px 14px;}
+.kpi-label{font-size:12px;color:#64748b;font-weight:500;margin-bottom:4px;}
+.kpi-value{font-size:20px;font-weight:700;}
+.kpi-sub{font-size:12px;color:#94a3b8;margin-top:2px;}
+
+/* Card */
+.card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:12px;overflow:hidden;}
+.card-header{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;background:#fafbfc;}
+.card-title{font-size:19px;font-weight:700;color:#0f2952;}
+.card-sub{font-size:12px;color:#94a3b8;}
+
+/* Filter */
+.filter-bar{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;}
+.filter-label{font-size:12px;color:#64748b;}
+.filter-select{font-size:12px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;color:#374151;background:white;cursor:pointer;}
+.filter-input{font-size:12px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;color:#374151;width:120px;}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;padding:0 0 4px;}
+.data-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.data-tbl th{background:#f3f6fb;padding:7px 9px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;}
+.data-tbl th.group-order{background:#dbeafe;color:#1e40af;}
+.data-tbl th.group-ship{background:#dcfce7;color:#166534;}
+.data-tbl th.group-adv{background:#fef3c7;color:#92400e;}
+.data-tbl th.group-bal{background:#ede9fe;color:#5b21b6;}
+.data-tbl td{padding:6px 9px;border:1px solid #f1f5f9;color:#1e293b;text-align:right;white-space:nowrap;}
+.data-tbl td.left{text-align:left;}
+.data-tbl td.center{text-align:center;}
+.data-tbl tr:hover td{background:#fafbfc;}
+.data-tbl tr.total-row td{background:#f3f6fb;font-weight:700;border-top:2px solid #e2e8f0;}
+.data-tbl td.paid{color:#16a34a;font-weight:600;}
+.data-tbl td.unpaid{color:#dc2626;}
+.data-tbl td.partial{color:#d97706;}
+
+/* Payment status badge */
+.pay-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.pay-full{background:#dcfce7;color:#16a34a;}
+.pay-partial{background:#fef3c7;color:#d97706;}
+.pay-none{background:#fee2e2;color:#dc2626;}
+.pay-adv{background:#dbeafe;color:#1d4ed8;}
+
+/* Notice */
+.notice{background:#fefce8;border-left:3px solid #eab308;padding:8px 14px;font-size:12px;color:#854d0e;margin:10px 16px;}
+
+/* PO group separator */
+.data-tbl tr.po-start td{border-top:2px solid #e2e8f0;}
+
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8;font-size:13px;}
+@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;opacity:0.7;">SANZ 관리 · Komelon Europe → SANZ 결제 추적</span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html" class="active">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">SANZ 오더·선적·결제 관리</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#64748b;">Order Information · Shipment Information · Sanz Payment Information</span>
+      <span class="upload-fname" id="uploadFname"></span>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">↑ 파일 업로드</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+    </div>
+  </div>
+
+  <div id="dashboard">
+
+    <!-- KPI -->
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- Notice area -->
+    <div id="noticeArea"></div>
+
+    <!-- 미수금 PO -->
+    <div class="card" id="outstandingCard">
+      <div class="card-header">
+        <span class="card-title">미수금 PO 현황</span>
+        <span class="card-sub" id="outstandingCount"></span>
+      </div>
+      <div id="outstandingList" style="padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;"></div>
+    </div>
+
+    <!-- PO별 결제 진행률 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">PO별 결제 진행률</span>
+        <span class="card-sub" id="poCount"></span>
+      </div>
+      <div class="filter-bar">
+        <span class="filter-label">결제상태</span>
+        <select class="filter-select" id="payFilter" onchange="applyFilter()">
+          <option value="">전체</option>
+          <option value="outstanding">미수금 있음</option>
+          <option value="full">결제완료</option>
+          <option value="adv">선급금만</option>
+        </select>
+      </div>
+      <div class="tbl-wrap" id="mainTable"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ── 고정 컬럼 인덱스 (SANZ확인 시트 기준) ──
+// 0:PO 1:PI 2:No 3:Code 4:Qty 5:UnitPrice 6:TotalPrice
+// 7:CI# 8:ShippedQty 9:CIAmount 10:ShipDate
+// 11:AdvAmount 12:AdvDate 13:Bal1Amount 14:Bal1Date 15:Bal2Amount 16:Bal2Date
+
+let poList    = [];  // PO별 집계 (KPI·미수금 카드용)
+let ciPoRows  = [];  // CI×PO 행 (테이블용, 결제 비례 안분)
+let rawRows   = [];  // 원본 행 (저장용)
+
+const DataStore = createDataStore('page7');
+
+function pn(v) {
+  if (!v && v !== 0) return 0;
+  const n = parseFloat(String(v).replace(/[€$,\s]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function fmt(v) {
+  return '$' + pn(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ── 파일 업로드 ──
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  const fn = document.getElementById('uploadFname');
+  if (fn) fn.textContent = files.length > 1 ? `📄 ${files.length}개 파일` : `📄 ${files[0].name}`;
+
+  const promises = Array.from(files).map(f => new Promise(resolve => {
+    const r = new FileReader();
+    r.onload = e => resolve(XLSX.read(e.target.result, { type: 'array' }));
+    r.readAsArrayBuffer(f);
+  }));
+
+  Promise.all(promises).then(wbs => {
+    let allRows = [];
+    wbs.forEach(wb => {
+      const sheetName = wb.SheetNames.find(n => n.includes('SANZ') || n.includes('확인')) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      allRows = allRows.concat(rows.slice(4).filter(r => r.some(c => c !== '' && c !== null)));
+    });
+    rawRows = allRows;
+    aggregateData(rawRows);
+    renderDashboard();
+    DataStore.save({ rawRows }).catch(e => console.warn('[DataStore] 저장 오류:', e));
+  });
+}
+
+// ── 데이터 집계 (PO별 + CI×PO 비례 안분) ──
+function aggregateData(rows) {
+  const poMap  = new Map(); // PO → 집계
+  const ciPoMap = new Map(); // `${ci}|${po}` → CI×PO 행
+
+  let curPO = null, curPI = '';
+
+  rows.forEach(r => {
+    if (r[0] !== '' && r[0] !== null && r[0] !== undefined) {
+      curPO = String(r[0]);
+      curPI = String(r[1] || '');
+      if (!poMap.has(curPO)) {
+        poMap.set(curPO, {
+          po: curPO, pi: curPI, ciAmount: 0,
+          advAmount: pn(r[11]), advDate: String(r[12] || ''),
+          bal1Amount: pn(r[13]), bal1Date: String(r[14] || ''),
+          bal2Amount: pn(r[15]), bal2Date: String(r[16] || ''),
+        });
+      }
+    }
+    if (!curPO) return;
+
+    const ciAmt = pn(r[9]);
+    const ci    = String(r[7] || '').trim();
+    const date  = String(r[10] || '');
+
+    poMap.get(curPO).ciAmount += ciAmt;
+
+    if (!ci) return;
+    const key = ci + '|' + curPO;
+    if (!ciPoMap.has(key)) {
+      ciPoMap.set(key, { ci, shipDate: date, po: curPO, pi: curPI, ciAmount: 0 });
+    }
+    ciPoMap.get(key).ciAmount += ciAmt;
+  });
+
+  // ── PO별 집계 확정 (KPI·카드용) ──
+  poList = Array.from(poMap.values()).map(p => {
+    p.received    = p.advAmount + p.bal1Amount + p.bal2Amount;
+    p.outstanding = Math.max(0, p.ciAmount - p.received);
+    p.rate        = p.ciAmount > 0 ? Math.min(100, p.received / p.ciAmount * 100) : 0;
+    return p;
+  });
+
+  // ── CI×PO 행 확정 (결제 비례 안분) ──
+  ciPoRows = Array.from(ciPoMap.values()).map(row => {
+    const po = poMap.get(row.po);
+    const ratio = (po && po.ciAmount > 0) ? row.ciAmount / po.ciAmount : 0;
+    row.allocAdv      = po ? po.advAmount  * ratio : 0;
+    row.allocAdvDate  = po ? po.advDate  : '';
+    row.allocBal1     = po ? po.bal1Amount * ratio : 0;
+    row.allocBal1Date = po ? po.bal1Date : '';
+    row.allocBal2     = po ? po.bal2Amount * ratio : 0;
+    row.allocBal2Date = po ? po.bal2Date : '';
+    row.received      = row.allocAdv + row.allocBal1 + row.allocBal2;
+    row.outstanding   = Math.max(0, row.ciAmount - row.received);
+    row.rate          = row.ciAmount > 0 ? Math.min(100, row.received / row.ciAmount * 100) : 0;
+    return row;
+  });
+
+  // 기본 정렬: Ship Date 오름차순
+  ciPoRows.sort((a, b) => String(a.shipDate).localeCompare(String(b.shipDate)));
+}
+
+// ── 대시보드 렌더 ──
+function renderDashboard() {
+  renderKPI();
+  renderOutstanding();
+  renderCITable(ciPoRows);
+}
+
+function renderKPI() {
+  const totalCI    = poList.reduce((s, p) => s + p.ciAmount, 0);
+  const totalRec   = poList.reduce((s, p) => s + p.received, 0);
+  const totalOut   = poList.reduce((s, p) => s + p.outstanding, 0);
+  const rate       = totalCI > 0 ? (totalRec / totalCI * 100).toFixed(1) : 0;
+  const outCount   = poList.filter(p => p.outstanding > 0).length;
+  const fullCount  = poList.filter(p => p.outstanding <= 0 && p.ciAmount > 0).length;
+
+  document.getElementById('kpiRow').innerHTML = `
+  <div class="kpi-card">
+    <div class="kpi-label">총 CI 금액</div>
+    <div class="kpi-value" style="color:#0f2952;">${fmt(totalCI)}</div>
+    <div class="kpi-sub">${poList.length}개 PO</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">수금 완료액</div>
+    <div class="kpi-value" style="color:#16a34a;">${fmt(totalRec)}</div>
+    <div class="kpi-sub">선급금 + 잔금</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">미수금 잔액</div>
+    <div class="kpi-value" style="color:#dc2626;">${fmt(totalOut)}</div>
+    <div class="kpi-sub">${outCount}개 PO 미회수</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">수금률</div>
+    <div class="kpi-value" style="color:#0f2952;">${rate}%</div>
+    <div class="kpi-sub">결제완료 ${fullCount}건</div>
+  </div>`;
+}
+
+function renderOutstanding() {
+  const outstanding = poList.filter(p => p.outstanding > 0);
+  document.getElementById('outstandingCount').textContent = `${outstanding.length}건`;
+
+  if (!outstanding.length) {
+    document.getElementById('outstandingList').innerHTML = '<p style="color:#16a34a;font-size:13px;padding:8px 0;">미수금 PO 없음 ✓</p>';
+    return;
+  }
+
+  document.getElementById('outstandingList').innerHTML = outstanding.map(p => {
+    const advPct  = p.ciAmount > 0 ? (p.advAmount / p.ciAmount * 100) : 0;
+    const bal1Pct = p.ciAmount > 0 ? (p.bal1Amount / p.ciAmount * 100) : 0;
+    const bal2Pct = p.ciAmount > 0 ? (p.bal2Amount / p.ciAmount * 100) : 0;
+    const outPct  = 100 - advPct - bal1Pct - bal2Pct;
+    return `
+    <div style="background:#fff7f7;border:1px solid #fee2e2;border-radius:8px;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-weight:600;color:#0f2952;">PO ${p.po}</span>
+        <span style="font-size:11px;color:#64748b;">PI: ${p.pi}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+        <span style="color:#64748b;">CI 금액: ${fmt(p.ciAmount)}</span>
+        <span style="color:#dc2626;font-weight:600;">미수금: ${fmt(p.outstanding)}</span>
+      </div>
+      <div style="height:10px;border-radius:5px;background:#f1f5f9;overflow:hidden;display:flex;">
+        <div style="width:${advPct.toFixed(1)}%;background:#3b82f6;" title="선급금 ${fmt(p.advAmount)}"></div>
+        <div style="width:${bal1Pct.toFixed(1)}%;background:#16a34a;" title="잔금1 ${fmt(p.bal1Amount)}"></div>
+        <div style="width:${bal2Pct.toFixed(1)}%;background:#22c55e;" title="잔금2 ${fmt(p.bal2Amount)}"></div>
+        <div style="width:${outPct.toFixed(1)}%;background:#fee2e2;" title="미수 ${fmt(p.outstanding)}"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;color:#64748b;">
+        <span>■ <span style="color:#3b82f6;">선급 ${fmt(p.advAmount)}</span>${p.advDate ? ' (' + p.advDate + ')' : ''}</span>
+        ${p.bal1Amount ? `<span>■ <span style="color:#16a34a;">잔금1 ${fmt(p.bal1Amount)}</span>${p.bal1Date ? ' (' + p.bal1Date + ')' : ''}</span>` : ''}
+        ${p.bal2Amount ? `<span>■ <span style="color:#22c55e;">잔금2 ${fmt(p.bal2Amount)}</span>${p.bal2Date ? ' (' + p.bal2Date + ')' : ''}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function applyFilter() {
+  const f = document.getElementById('payFilter').value;
+  let filtered = ciPoRows;
+  if (f === 'outstanding') filtered = ciPoRows.filter(r => r.outstanding > 0);
+  else if (f === 'full')   filtered = ciPoRows.filter(r => r.outstanding <= 0 && r.ciAmount > 0 && r.received > 0);
+  else if (f === 'adv')    filtered = ciPoRows.filter(r => r.allocAdv > 0 && r.allocBal1 === 0);
+  renderCITable(filtered);
+}
+
+function renderCITable(list) {
+  document.getElementById('poCount').textContent = `${list.length}건`;
+  const el = document.getElementById('mainTable');
+  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">데이터 없음</div>'; return; }
+
+  const cols = [
+    { key:'shipDate',   label:'Ship Date',   cls:'group-ship',  nosort:false },
+    { key:'ci',         label:'CI #',        cls:'group-ship',  nosort:false },
+    { key:'po',         label:'PO',          cls:'group-order', nosort:false },
+    { key:'pi',         label:'PI',          cls:'group-order', nosort:false },
+    { key:'ciAmount',   label:'CI 금액',     cls:'group-ship',  nosort:false },
+    { key:'allocAdv',   label:'선급금(안분)', cls:'group-adv',   nosort:false },
+    { key:'allocAdvDate',label:'선급 수령일', cls:'group-adv',   nosort:true  },
+    { key:'allocBal1',  label:'잔금1(안분)',  cls:'group-bal',   nosort:false },
+    { key:'allocBal1Date',label:'잔금1 수령일',cls:'group-bal', nosort:true  },
+    { key:'allocBal2',  label:'잔금2(안분)',  cls:'group-bal',   nosort:false },
+    { key:'allocBal2Date',label:'잔금2 수령일',cls:'group-bal', nosort:true  },
+    { key:'received',   label:'수금액',      cls:'group-ship',  nosort:false },
+    { key:'outstanding',label:'미수금',      cls:'',            nosort:false, style:'background:#fee2e2;color:#991b1b;' },
+    { key:'rate',       label:'진행률',      cls:'',            nosort:true,  style:'background:#f3f6fb;' },
+    { key:'status',     label:'상태',        cls:'',            nosort:true,  style:'background:#f3f6fb;' },
+  ];
+
+  let html = `<table class="data-tbl"><thead><tr>`;
+  cols.forEach((c, i) => {
+    const cursor = c.nosort ? 'default' : 'pointer';
+    const baseStyle = c.style || '';
+    const arrow = c.nosort ? '' : ` <span id="arr_${i}" style="opacity:0.4;">↕</span>`;
+    const click = c.nosort ? '' : `onclick="sortCITable(${i})"`;
+    html += `<th class="${c.cls}" style="${baseStyle}cursor:${cursor}" ${click}>${c.label}${arrow}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  list.forEach(r => {
+    const advPct  = r.ciAmount > 0 ? r.allocAdv  / r.ciAmount * 100 : 0;
+    const bal1Pct = r.ciAmount > 0 ? r.allocBal1 / r.ciAmount * 100 : 0;
+    const bal2Pct = r.ciAmount > 0 ? r.allocBal2 / r.ciAmount * 100 : 0;
+    const outPct  = Math.max(0, 100 - advPct - bal1Pct - bal2Pct);
+
+    let badge, badgeCls;
+    if (r.outstanding <= 0 && r.ciAmount > 0) { badge = '결제완료'; badgeCls = 'pay-badge pay-full'; }
+    else if (r.allocBal1 > 0)                 { badge = '부분수금'; badgeCls = 'pay-badge pay-partial'; }
+    else if (r.allocAdv  > 0)                 { badge = '선급금만'; badgeCls = 'pay-badge pay-adv'; }
+    else                                       { badge = '미수금';   badgeCls = 'pay-badge pay-none'; }
+
+    html += `<tr>
+      <td class="center">${r.shipDate || '-'}</td>
+      <td class="center">${r.ci}</td>
+      <td class="left">${r.po}</td>
+      <td class="left">${r.pi}</td>
+      <td>${fmt(r.ciAmount)}</td>
+      <td class="${r.allocAdv  ? 'paid' : ''}">${r.allocAdv  ? fmt(r.allocAdv)  : '-'}</td>
+      <td class="center">${r.allocAdvDate  || '-'}</td>
+      <td class="${r.allocBal1 ? 'paid' : ''}">${r.allocBal1 ? fmt(r.allocBal1) : '-'}</td>
+      <td class="center">${r.allocBal1Date || '-'}</td>
+      <td class="${r.allocBal2 ? 'paid' : ''}">${r.allocBal2 ? fmt(r.allocBal2) : '-'}</td>
+      <td class="center">${r.allocBal2Date || '-'}</td>
+      <td>${fmt(r.received)}</td>
+      <td class="${r.outstanding > 0 ? 'unpaid' : 'paid'}">${r.outstanding > 0 ? fmt(r.outstanding) : '✓'}</td>
+      <td style="min-width:110px;">
+        <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#f1f5f9;">
+          <div style="width:${advPct.toFixed(1)}%;background:#3b82f6;"></div>
+          <div style="width:${bal1Pct.toFixed(1)}%;background:#16a34a;"></div>
+          <div style="width:${bal2Pct.toFixed(1)}%;background:#22c55e;"></div>
+          <div style="width:${outPct.toFixed(1)}%;background:#fca5a5;"></div>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;text-align:right;">${r.rate.toFixed(0)}%</div>
+      </td>
+      <td class="center"><span class="${badgeCls}">${badge}</span></td>
+    </tr>`;
+  });
+
+  const totCI  = list.reduce((s,r) => s + r.ciAmount, 0);
+  const totRec = list.reduce((s,r) => s + r.received, 0);
+  const totOut = list.reduce((s,r) => s + r.outstanding, 0);
+  html += `<tr class="total-row">
+    <td class="left" colspan="4">합계 (${list.length}건)</td>
+    <td>${fmt(totCI)}</td>
+    <td colspan="6">-</td>
+    <td>${fmt(totRec)}</td>
+    <td class="${totOut>0?'unpaid':'paid'}">${fmt(totOut)}</td>
+    <td colspan="2">-</td>
+  </tr></tbody></table>`;
+  el.innerHTML = html;
+}
+
+// ── 소팅 ──
+let sortCol = 0, sortAsc = true;
+const sortKeys = ['shipDate','ci','po','pi','ciAmount','allocAdv','allocAdvDate','allocBal1','allocBal1Date','allocBal2','allocBal2Date','received','outstanding'];
+function sortCITable(colIdx) {
+  if (sortCol === colIdx) { sortAsc = !sortAsc; } else { sortCol = colIdx; sortAsc = true; }
+  document.querySelectorAll('[id^="arr_"]').forEach(el => { el.textContent = '↕'; el.style.opacity = '0.4'; });
+  const arr = document.getElementById('arr_' + colIdx);
+  if (arr) { arr.textContent = sortAsc ? '↑' : '↓'; arr.style.opacity = '1'; }
+  const key = sortKeys[colIdx];
+  const sorted = [...ciPoRows].sort((a, b) => {
+    const va = a[key] ?? '', vb = b[key] ?? '';
+    const na = parseFloat(String(va).replace(/[^0-9.-]/g,'')), nb = parseFloat(String(vb).replace(/[^0-9.-]/g,''));
+    const cmp = (!isNaN(na) && !isNaN(nb)) ? na - nb : String(va).localeCompare(String(vb));
+    return sortAsc ? cmp : -cmp;
+  });
+  renderCITable(sorted);
+}
+
+// ── 초기화 ──
+renderDashboard();
+DataStore.load().then(saved => {
+  if (saved && saved.rawRows) {
+    rawRows = saved.rawRows;
+    aggregateData(rawRows);
+    renderDashboard();
+  }
+}).catch(() => {});
+function printAllPages(){const base=location.href.split("?")[0].replace(/[^/]+$/,"");["salesfront.html","salesresult.html","kawase.html","kusafreight.html","issuefound.html","paymentmng.html","sanzmng.html","mtgmng.html"].forEach((p,i)=>setTimeout(()=>window.open(base+p+"?print=1","_blank"),i*600));}
+if(new URLSearchParams(location.search).get("print")){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>

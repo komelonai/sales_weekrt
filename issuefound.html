@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이상발생리스트 | 해외영업팀 주간보고</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#f0f2f5;color:#1e293b;font-size:17px;line-height:1.6;}
+.site-header{background:#0f2952;color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;}
+.site-logo{font-size:15px;font-weight:600;}
+.site-nav{background:white;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;}
+.site-nav a{display:inline-flex;align-items:center;padding:10px 14px;font-size:14px;color:#64748b;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.site-nav a:hover{color:#0f2952;background:#f8fafc;}
+.site-nav a.active{color:#0f2952;border-bottom-color:#0f2952;font-weight:500;}
+.main{padding:14px 20px 80px;max-width:1500px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.page-title{font-size:22px;font-weight:700;color:#0f2952;}
+.page-meta{font-size:13px;color:#64748b;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.kpi-card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:11px 14px;}
+.kpi-label{font-size:12px;color:#64748b;font-weight:500;margin-bottom:4px;}
+.kpi-value{font-size:26px;font-weight:700;}
+.kpi-sub{font-size:12px;color:#94a3b8;margin-top:2px;}
+
+/* Section card */
+.section-card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:16px;overflow:hidden;}
+.section-head{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;}
+.section-label{font-size:19px;font-weight:700;color:#0f2952;display:flex;align-items:center;gap:8px;}
+.section-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.badge-red{background:#fee2e2;color:#dc2626;}
+.badge-yellow{background:#fef3c7;color:#d97706;}
+.badge-blue{background:#dbeafe;color:#2563eb;}
+.badge-green{background:#dcfce7;color:#16a34a;}
+.badge-gray{background:#f1f5f9;color:#64748b;}
+
+/* Editable table */
+.tbl-wrap{overflow-x:auto;}
+.edit-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.edit-tbl th{background:#f3f6fb;padding:7px 10px;font-weight:500;color:#374151;border:1px solid #e2e8f0;text-align:center;white-space:nowrap;user-select:none;}
+.edit-tbl td{padding:6px 10px;border:1px solid #f1f5f9;color:#1e293b;text-align:center;min-width:60px;}
+.edit-tbl td[contenteditable="true"]{cursor:text;transition:background 0.1s;}
+.edit-tbl td[contenteditable="true"]:focus{outline:none;background:#eff6ff;}
+.edit-tbl td.left{text-align:left;}
+.edit-tbl td.highlight{background:#fef9c3;font-weight:600;}
+.edit-tbl tr:hover td{background:#fafbfc;}
+.edit-tbl tr:hover td[contenteditable="true"]:focus{background:#eff6ff;}
+
+/* Row controls */
+.row-ctrl{padding:8px 16px 12px;display:flex;gap:6px;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;}
+.btn:hover{background:#f3f4f6;}
+.btn-danger{color:#dc2626;border-color:#fca5a5;}
+.btn-danger:hover{background:#fff5f5;}
+
+/* Section note */
+.section-note{padding:0 16px 10px;font-size:12px;color:#64748b;font-style:italic;}
+
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.05);}
+.save-status{font-size:12px;color:#94a3b8;}
+.btn-primary{background:#0f2952;color:white;border-color:#0f2952;padding:8px 18px;font-size:13px;}
+.btn-primary:hover{background:#0c2347;}
+
+.date-badge{font-size:12px;background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:4px;}
+@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns,.btn{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.section-card{break-inside:avoid;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-logo">해외영업팀 주간보고</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="date-badge" id="headerDate">작성일: 2026-06-08</span>
+    <div class="print-btns" style="display:flex;gap:6px;">
+      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
+      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">📄 전체 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="salesfront.html">① 표지</a>
+  <a href="salesresult.html">② 실적보고</a>
+  <a href="kawase.html">③ 환율보고</a>
+  <a href="kusafreight.html">④ KUSA운임</a>
+  <a href="issuefound.html" class="active">⑤ 이상발생</a>
+  <a href="paymentmng.html">⑥ 선수금·미수금</a>
+  <a href="sanzmng.html">⑦ SANZ관리</a>
+  <a href="mtgmng.html">⑧ 미팅관리</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <span class="page-title">해외영업팀 이상 발생 리스트</span>
+    <span class="page-meta">작성일: 2026-06-08</span>
+  </div>
+
+  <!-- KPI Summary -->
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card">
+      <div class="kpi-label">출고 지연 건수</div>
+      <div class="kpi-value" style="color:#dc2626;" id="kpi1">-</div>
+      <div class="kpi-sub">생산완료 후 미출고</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">출고 지연 수량</div>
+      <div class="kpi-value" style="color:#d97706;" id="kpi2">-</div>
+      <div class="kpi-sub">합계</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">오더 취소 건수</div>
+      <div class="kpi-value" style="color:#64748b;" id="kpi3">-</div>
+      <div class="kpi-sub">마감 확정 후 취소</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">아웃소싱 진행 건수</div>
+      <div class="kpi-value" style="color:#2563eb;" id="kpi4">-</div>
+      <div class="kpi-sub">줄자/수평기/접자</div>
+    </div>
+  </div>
+
+  <!-- 1. 출고 지연 리스트 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">
+        <span class="section-badge badge-red">1</span>
+        출고 지연 리스트
+      </span>
+      <span style="font-size:11px;color:#94a3b8;">생산완료 후 1일 이상 창고 대기 · 잔량완료/선적서류마감/부킹 일정 감안</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="edit-tbl" id="delayTable">
+        <thead>
+          <tr>
+            <th>수주번호</th><th>거래선</th><th>모델명</th><th>규격</th><th>수량</th>
+            <th>오더접수일</th><th>앙산차수</th><th>기선적수량</th><th>재고</th>
+            <th>생산가능수량</th><th>미생산수량</th><th>비고</th>
+          </tr>
+        </thead>
+        <tbody id="delayBody">
+          <tr>
+            <td contenteditable="true" class="left">K6857-10</td>
+            <td contenteditable="true">F&amp;G</td>
+            <td contenteditable="true">OT-265B</td>
+            <td contenteditable="true">265mm</td>
+            <td contenteditable="true">240</td>
+            <td contenteditable="true">2024.12.09</td>
+            <td contenteditable="true">2-1차</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true">120</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true" class="left">240개 장기 재고 → 120개로 변경</td>
+          </tr>
+          <tr>
+            <td contenteditable="true" class="left highlight">L1924-01</td>
+            <td contenteditable="true">Berger</td>
+            <td contenteditable="true">FB-180</td>
+            <td contenteditable="true">180mm</td>
+            <td contenteditable="true" class="highlight">3,024</td>
+            <td contenteditable="true">2025.08.07</td>
+            <td contenteditable="true">11/26생산완료</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true" class="left">바이어가 26년7월-8월 초선적 지연 요청</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row-ctrl">
+      <button class="btn" onclick="addRow('delayBody', 12)">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeRow('delayBody')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 2. 오더 취소 리스트 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">
+        <span class="section-badge badge-yellow">2</span>
+        오더 취소 리스트
+      </span>
+      <span style="font-size:11px;color:#94a3b8;">오더 마감 회의 확정 후 취소된 오더</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="edit-tbl" id="cancelTable">
+        <thead>
+          <tr>
+            <th>수주번호</th><th>거래선</th><th>모델명</th><th>규격</th><th>수량</th>
+            <th>오더접수일</th><th>앙산차수</th><th>출고요청일</th><th>오더 취소 사유</th>
+          </tr>
+        </thead>
+        <tbody id="cancelBody">
+          <tr>
+            <td contenteditable="true" class="left" colspan="9" style="text-align:center;color:#94a3b8;">취소된 오더 없음 (행 추가 버튼으로 입력)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row-ctrl">
+      <button class="btn" onclick="addRow('cancelBody', 9)">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeRow('cancelBody')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 3. 조이사인 MMW15 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">
+        <span class="section-badge badge-gray">3</span>
+        조이사인 MMW15 수량 관리 대장
+      </span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="edit-tbl" id="mmwTable">
+        <thead>
+          <tr>
+            <th>고객사</th><th>모델</th><th>사이즈</th><th>ERP번호</th><th>수량</th>
+            <th>수주번호</th><th>생산차수</th><th>출고예정일</th><th>특이사항</th>
+          </tr>
+        </thead>
+        <tbody id="mmwBody">
+          <tr>
+            <td contenteditable="true" colspan="9" style="text-align:center;color:#94a3b8;">데이터 없음 (행 추가 버튼으로 입력)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row-ctrl">
+      <button class="btn" onclick="addRow('mmwBody', 9)">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeRow('mmwBody')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 4. KMC-2300NX 재고 생산 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">
+        <span class="section-badge badge-blue">4</span>
+        KUSA오더용 KMC-2300NX 재고 생산
+      </span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="edit-tbl" id="kmcTable">
+        <thead>
+          <tr>
+            <th>고객사</th><th>모델</th><th>사이즈</th><th>ERP번호</th><th>KUSA물번</th>
+            <th>재고생산수량</th><th>수주번호</th><th>수량</th><th>생산차수</th><th>특이사항</th>
+          </tr>
+        </thead>
+        <tbody id="kmcBody">
+          <tr>
+            <td contenteditable="true">KUSA</td>
+            <td contenteditable="true">KMC-2300NX</td>
+            <td contenteditable="true">100ft X 1/2in</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true">1000→720개→&gt;1,070개</td>
+            <td contenteditable="true">L6104</td>
+            <td contenteditable="true">33 / 34</td>
+            <td contenteditable="true">100</td>
+            <td contenteditable="true" class="left">베트남→한국 발송 수량 100ft-1,250개/200ft-436개</td>
+          </tr>
+          <tr>
+            <td contenteditable="true">KUSA</td>
+            <td contenteditable="true">KMC-2300NX</td>
+            <td contenteditable="true">200ft X 1/2in</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true">800→436개</td>
+            <td contenteditable="true">L7336</td>
+            <td contenteditable="true">48</td>
+            <td contenteditable="true">100</td>
+            <td contenteditable="true" class="left">200ft-300개 미출고 상태</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row-ctrl">
+      <button class="btn" onclick="addRow('kmcBody', 10)">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeRow('kmcBody')">- 행 삭제</button>
+    </div>
+  </div>
+
+  <!-- 5. 아웃소싱 관리 대장 -->
+  <div class="section-card">
+    <div class="section-head">
+      <span class="section-label">
+        <span class="section-badge badge-green">5</span>
+        상품 (줄자/수평기/접자) 아웃 소싱 관리 대장
+      </span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="edit-tbl" id="outsourcingTable">
+        <thead>
+          <tr>
+            <th>수주번호</th><th>발주번호</th><th>고객사</th><th>모델</th><th>사이즈</th>
+            <th>ERP번호</th><th>오더수량</th><th>출고예상차수</th><th>특이사항</th>
+          </tr>
+        </thead>
+        <tbody id="outsourcingBody">
+          <tr>
+            <td contenteditable="true" class="left">L5567</td>
+            <td contenteditable="true">DSTBXMS260226</td>
+            <td contenteditable="true">K-UK</td>
+            <td contenteditable="true">KMC-62</td>
+            <td contenteditable="true">5m/16ft x 19mm</td>
+            <td contenteditable="true">7100393</td>
+            <td contenteditable="true" class="highlight">75,024</td>
+            <td contenteditable="true">5월 중순</td>
+            <td contenteditable="true">프로모션</td>
+          </tr>
+          <tr>
+            <td contenteditable="true" class="left">L5567</td>
+            <td contenteditable="true">DSTBXMS260226</td>
+            <td contenteditable="true">K-UK</td>
+            <td contenteditable="true">KMC-62</td>
+            <td contenteditable="true">8m/26ft x 25mm</td>
+            <td contenteditable="true">7100394</td>
+            <td contenteditable="true" class="highlight">75,024</td>
+            <td contenteditable="true">5월 중순</td>
+            <td contenteditable="true">프로모션</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row-ctrl">
+      <button class="btn" onclick="addRow('outsourcingBody', 9)">+ 행 추가</button>
+      <button class="btn btn-danger" onclick="removeRow('outsourcingBody')">- 행 삭제</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="save-bar">
+  <span class="save-status" id="saveStatus">저장되지 않은 변경사항</span>
+  <div style="display:flex;gap:8px;">
+    <button class="btn" onclick="clearAll()">초기화</button>
+    <button class="btn btn-primary" onclick="saveAll()">저장</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'weeklyReport_page5';
+
+const DataStore = createDataStore('page5');
+const TABLE_IDS = ['delayBody','cancelBody','mmwBody','kmcBody','outsourcingBody'];
+
+function addRow(tbodyId, cols) {
+  const tb = document.getElementById(tbodyId);
+  // Remove placeholder row if present
+  if (tb.rows.length === 1 && tb.rows[0].cells.length === 1) tb.deleteRow(0);
+  const tr = document.createElement('tr');
+  for (let i = 0; i < cols; i++) {
+    const td = document.createElement('td');
+    td.contentEditable = 'true';
+    if (i === 0) td.className = 'left';
+    td.addEventListener('input', markChanged);
+    tr.appendChild(td);
+  }
+  tb.appendChild(tr);
+  tr.cells[0].focus();
+  markChanged();
+  updateKPI();
+}
+
+function removeRow(tbodyId) {
+  const tb = document.getElementById(tbodyId);
+  if (tb.rows.length > 0) {
+    tb.deleteRow(tb.rows.length - 1);
+    markChanged();
+    updateKPI();
+  }
+}
+
+function updateKPI() {
+  // 출고 지연 건수 / 수량
+  const delayRows = document.getElementById('delayBody').rows;
+  let delayCount = 0, delayQty = 0;
+  Array.from(delayRows).forEach(r => {
+    if (r.cells.length > 1 && r.cells[0].textContent.trim()) {
+      delayCount++;
+      const qty = parseInt(String(r.cells[4]?.textContent || '').replace(/,/g,'')) || 0;
+      delayQty += qty;
+    }
+  });
+
+  const cancelRows = document.getElementById('cancelBody').rows;
+  let cancelCount = 0;
+  Array.from(cancelRows).forEach(r => {
+    if (r.cells.length > 1 && r.cells[0].textContent.trim()) cancelCount++;
+  });
+
+  const outRows = document.getElementById('outsourcingBody').rows;
+  let outCount = 0;
+  Array.from(outRows).forEach(r => {
+    if (r.cells.length > 1 && r.cells[0].textContent.trim()) outCount++;
+  });
+
+  document.getElementById('kpi1').textContent = delayCount || '-';
+  document.getElementById('kpi2').textContent = delayQty ? delayQty.toLocaleString() + '개' : '-';
+  document.getElementById('kpi3').textContent = cancelCount || '-';
+  document.getElementById('kpi4').textContent = outCount || '-';
+}
+
+async function saveAll() {
+  const data = {};
+  TABLE_IDS.forEach(id => {
+    data[id] = document.getElementById(id).innerHTML;
+  });
+  document.getElementById('saveStatus').textContent = '저장 중...';
+  try {
+    await DataStore.save(data);
+    document.getElementById('saveStatus').textContent = '저장 완료 · ' + new Date().toLocaleTimeString('ko-KR');
+  } catch(e) {
+    document.getElementById('saveStatus').textContent = '저장 실패 — 다시 시도';
+  }
+}
+
+async function loadAll() {
+  const data = await DataStore.load();
+  if (!data) return;
+  try {
+    TABLE_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id]) el.innerHTML = data[id];
+    });
+    document.querySelectorAll('[contenteditable]').forEach(el => {
+      el.addEventListener('input', markChanged);
+    });
+  } catch(e) {}
+  updateKPI();
+}
+
+async function clearAll() {
+  if (!confirm('모든 내용을 초기화하시겠습니까?')) return;
+  await DataStore.clear();
+  location.reload();
+}
+
+function markChanged() {
+  document.getElementById('saveStatus').textContent = '저장되지 않은 변경사항';
+}
+
+document.querySelectorAll('[contenteditable]').forEach(el => {
+  el.addEventListener('input', () => { markChanged(); updateKPI(); });
+});
+
+loadAll();
+updateKPI();
+function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
+if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+</body>
+</html>
