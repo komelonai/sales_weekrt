@@ -62,7 +62,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .ptbl tr.total-row{background:#f8fafc;}
 .ptbl tr.total-row td{font-weight:700;border-top:2px solid #cbd5e1;}
 .table-note{font-size:12px;color:#94a3b8;text-align:right;margin:-2px 0 6px;}
-.order-dashboard{display:grid;grid-template-columns:minmax(620px,0.95fr) minmax(360px,1.05fr);gap:14px;align-items:start;margin-bottom:12px;}
+.order-dashboard{display:grid;grid-template-columns:minmax(620px,0.95fr) minmax(360px,1.05fr);gap:14px;align-items:stretch;margin-bottom:12px;}
+.order-dashboard>.card{display:flex;flex-direction:column;}
+.order-dashboard>.card .order-flow{flex:1;}
 .order-table-wrap{overflow-x:auto;}
 .order-flow{display:grid;grid-template-rows:repeat(3,1fr);gap:10px;min-width:0;}
 .flow-chart{border:1px solid #e2e8f0;border-radius:8px;background:#fbfdff;padding:10px 12px;min-height:132px;}
