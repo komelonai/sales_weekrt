@@ -295,6 +295,8 @@ function handleFile(file) {
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
     // 실적.xlsx 형식인지 확인 (헤더 첫 컬럼 = Itclsnm)
     if (rows[0] && String(rows[0][0]).includes('Itclsnm')) {
+      kusaManual.saw    = { m26: Array(12).fill(0), m25sum: 0 };
+      kusaManual.cutter = { m26: Array(12).fill(0), m25sum: 0 };
       rawData = extractJisik(rows);
     } else {
       rawData = extractLegacy(rows);
@@ -411,7 +413,19 @@ function extractJisik(rows) {
     const itcls = String(row[0]||'').trim();
     const area  = String(row[2]||'').trim();
     const cvnas = String(row[4]||'').trim();
-    if (area === 'K-USA') return;
+    if (area === 'K-USA') {
+      const a26 = row.slice(S26, S26+12).map(v => Number(v)||0);
+      const a25sum = row.slice(S25, S25+12).map(v => Number(v)||0).reduce((a,b)=>a+b,0);
+      if (itcls.toUpperCase().includes('SAW')) {
+        for (let i=0;i<12;i++) kusaManual.saw.m26[i] += a26[i];
+        kusaManual.saw.m25sum += a25sum;
+      }
+      if (itcls.toUpperCase().includes('CUTTER')) {
+        for (let i=0;i<12;i++) kusaManual.cutter.m26[i] += a26[i];
+        kusaManual.cutter.m25sum += a25sum;
+      }
+      return;
+    }
     if (area.toLowerCase() === 'china') return;
 
     const a25 = row.slice(S25, S25+12).map(v => Number(v)||0);
