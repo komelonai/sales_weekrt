@@ -62,7 +62,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .ptbl tr.total-row{background:#f8fafc;}
 .ptbl tr.total-row td{font-weight:700;border-top:2px solid #cbd5e1;}
 .table-note{font-size:12px;color:#94a3b8;text-align:right;margin:-2px 0 6px;}
-.order-dashboard{display:grid;grid-template-columns:minmax(620px,0.95fr) minmax(360px,1.05fr);gap:14px;align-items:start;}
+.order-dashboard{display:grid;grid-template-columns:minmax(620px,0.95fr) minmax(360px,1.05fr);gap:14px;align-items:start;margin-bottom:12px;}
 .order-table-wrap{overflow-x:auto;}
 .order-flow{display:grid;grid-template-rows:repeat(3,1fr);gap:10px;min-width:0;}
 .flow-chart{border:1px solid #e2e8f0;border-radius:8px;background:#fbfdff;padding:10px 12px;min-height:132px;}
@@ -181,24 +181,26 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
     <div class="tbl-wrap" id="negoResultTable"></div>
   </div>
 
-  <!-- 6. Order 현황 -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">6. Order 현황</span>
+  <div class="order-dashboard">
+    <!-- 6. Order 현황 -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">6. Order 현황</span>
+      </div>
+      <div class="order-table-wrap">
+        <div class="table-note">오더 접수 현황 파일 업로드 · 단위: 달러</div>
+        <div id="orderStatusTable"></div>
+      </div>
     </div>
-    <div class="order-table-wrap">
-      <div class="table-note">오더 접수 현황 파일 업로드 · 단위: 달러</div>
-      <div id="orderStatusTable"></div>
-    </div>
-  </div>
 
-  <!-- 7. 시각화 -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">7. 시각화</span>
-      <span class="card-sub">2·3·4번 출고 실적 월별 흐름</span>
+    <!-- 7. 시각화 -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">7. 시각화</span>
+        <span class="card-sub">2·3·4번 출고 실적 월별 흐름</span>
+      </div>
+      <div class="order-flow" id="productFlowCharts"></div>
     </div>
-    <div class="order-flow" id="productFlowCharts"></div>
   </div>
 
 </main>
