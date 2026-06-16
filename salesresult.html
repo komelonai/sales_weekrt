@@ -205,6 +205,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
     </div>
   </div>
 
+<div style="text-align:center;margin:24px 0 8px;">
+  <button onclick="clearAll()" style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;padding:8px 24px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">데이터 초기화</button>
+</div>
 </main>
 
 <script>
@@ -864,6 +867,18 @@ Promise.all([DS_config.load().catch(()=>null), DS_summary().load().catch(()=>nul
     if (sum && sum.summaryData) summaryData = sum.summaryData;
     renderAll();
   });
+
+function clearAll() {
+  if (!confirm('1번 연간 목표(고정값)를 제외한 모든 데이터를 초기화합니다. 계속하시겠습니까?')) return;
+  rawData       = null;
+  kusaManual    = { julja: { m26: Array(12).fill(0), m25sum: 0 }, saw: { m26: Array(12).fill(0), m25sum: 0 }, cutter: { m26: Array(12).fill(0), m25sum: 0 } };
+  negoResult    = Array(12).fill(0);
+  orderReports  = {};
+  summaryData   = {};
+  document.getElementById('uploadFname').textContent = '';
+  renderAll();
+  scheduleSave();
+}
 
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
