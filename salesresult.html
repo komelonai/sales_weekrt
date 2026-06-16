@@ -186,7 +186,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
         <span class="card-title">6. Order 현황</span>
       </div>
       <div class="order-table-wrap">
-        <div class="table-note">오더 접수 현황 파일 업로드 · 단위: 달러</div>
+        <div class="table-note" id="orderTableNote">오더 접수 현황 파일 업로드 · 단위: 달러</div>
         <div id="orderStatusTable"></div>
       </div>
     </div>
@@ -376,23 +376,40 @@ function parseExcelDate(value) {
 }
 
 function importOrderReport(wb, fileName) {
-  const match = fileName.match(/(20\d{2})[.\-_ ]?(\d{1,2})/);
-  const year = match ? parseInt(match[1], 10) : selYear;
-  const month = match ? parseInt(match[2], 10) : selMonth;
-  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  // 항상 화면에서 선택한 연/월 기준으로 저장 (파일명 파싱 오류 방지)
+  const ym = `${selYear}-${String(selMonth).padStart(2,'0')}`;
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).slice(1);
+  const allRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  // 헤더 행에서 컬럼 위치 자동 감지
+  let dataStart = 1;
+  let areaCol = 0, buyerCol = 1, amtCol = 20, confirmCol = 23;
+  for (let i = 0; i < Math.min(6, allRows.length); i++) {
+    const r = allRows[i];
+    let found = 0;
+    r.forEach((cell, j) => {
+      const c = String(cell).trim().replace(/\s/g,'').toUpperCase();
+      if (['지역','AREA','국가','COUNTRY'].includes(c)) { areaCol = j; found++; }
+      if (['바이어','바이어명','BUYER','거래처','고객사'].includes(c)) { buyerCol = j; found++; }
+      if (['금액','오더금액','수주금액','달러금액','AMOUNT','USD','ORDER_AMOUNT','ORDERAMT'].includes(c)) { amtCol = j; found++; }
+      if (['확정','확정여부','CONFIRM','CONFIRMED'].includes(c)) { confirmCol = j; found++; }
+    });
+    if (found >= 2) { dataStart = i + 1; break; }
+  }
+
+  const rows = allRows.slice(dataStart);
   const report = createEmptyOrderReport();
 
   rows.forEach(row => {
-    const amount = parseNum(row[20]);
+    const amount = parseNum(row[amtCol]);
     if (!amount) return;
-    const key = classifyOrderRow(row);
-    if (!key) return;
-    const confirmed = String(row[23] || '').trim() === '확정';
+    const area  = String(row[areaCol]  || '').trim();
+    const buyer = String(row[buyerCol] || '').trim().toLowerCase();
+    const key   = classifyOrderRow(row, area, buyer);
+    const confirmed = String(row[confirmCol] || '').trim() === '확정';
     report[key].order += amount;
     if (confirmed) report[key].confirmed += amount;
-    else report[key].unconfirmed += amount;
+    else           report[key].unconfirmed += amount;
   });
 
   orderReports[ym] = report;
@@ -413,9 +430,9 @@ function createEmptyOrderReport() {
   };
 }
 
-function classifyOrderRow(row) {
-  const area = String(row[0] || '').trim();
-  const buyer = String(row[1] || '').trim().toLowerCase();
+function classifyOrderRow(row, area, buyer) {
+  area  = area  !== undefined ? area  : String(row[0] || '').trim();
+  buyer = buyer !== undefined ? buyer : String(row[1] || '').trim().toLowerCase();
   if (buyer.includes('grainger')) return 'northDirect';
   if (area === 'K-USA') return 'kusa';
   if (buyer.includes('memo')) return 'memo';
@@ -720,8 +737,18 @@ function renderOrderStatusTable() {
   const month = selMonth;
   const prevYear = selYear - 1;
   const curYear = selYear;
+  const curKey = `${curYear}-${String(month).padStart(2,'0')}`;
   const prev = orderReports[`${prevYear}-${String(month).padStart(2,'0')}`] || createEmptyOrderReport();
-  const cur = orderReports[`${curYear}-${String(month).padStart(2,'0')}`] || createEmptyOrderReport();
+  const cur = orderReports[curKey] || createEmptyOrderReport();
+
+  const note = document.getElementById('orderTableNote');
+  if (note) {
+    const hasData = cur && Object.values(cur).some(v => v.order > 0);
+    note.textContent = hasData
+      ? `조회: ${curKey} · 데이터 있음 · 단위: 달러`
+      : `조회: ${curKey} · 데이터 없음 — 파일 업로드 후 보고 월을 맞춰주세요 · 단위: 달러`;
+    note.style.color = hasData ? '#64748b' : '#dc2626';
+  }
   const rows = [
     { key:'kusa', label:'KUSA' },
     { key:'northDirect', label:'북미직선적' },
