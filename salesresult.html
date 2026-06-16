@@ -293,23 +293,36 @@ function handleFiles(files) {
 }
 
 function processFile(wb, fileName) {
-  if (fileName.replace(/\s/g,'').includes('오더접수현황')) {
-    importOrderReport(wb, fileName);
-    return;
-  }
-  if (fileName.toUpperCase().replace(/[\s_]/g,'').includes('MONTHLYREPORT')) {
+  // MONTHLY REPORT: TOTALS 시트 존재로 감지 (파일명 무관)
+  if (wb.SheetNames.some(s => s.toUpperCase().includes('TOTAL'))) {
     kusaManual.julja.m26 = extractMonthlyReportKusa(wb, selYear);
     return;
   }
+
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-  if (rows[0] && String(rows[0][0]).includes('Itclsnm')) {
+  if (!rows.length) return;
+
+  // 실적.xlsx: 첫 셀이 Itclsnm
+  if (String(rows[0][0] || '').trim() === 'Itclsnm') {
     kusaManual.saw    = { m26: Array(12).fill(0), m25sum: 0 };
     kusaManual.cutter = { m26: Array(12).fill(0), m25sum: 0 };
     rawData = extractJisik(rows);
-  } else {
-    extractLegacy(rows);
+    return;
   }
+
+  // 오더접수현황: 지역 + 바이어 헤더가 처음 6행 안에 있는 경우 (파일명 무관)
+  for (let i = 0; i < Math.min(6, rows.length); i++) {
+    const hasArea  = rows[i].some(c => ['지역','AREA','국가','COUNTRY'].includes(String(c).trim()));
+    const hasBuyer = rows[i].some(c => ['바이어','바이어명','BUYER','거래처'].includes(String(c).trim()));
+    if (hasArea && hasBuyer) {
+      importOrderReport(wb, fileName);
+      return;
+    }
+  }
+
+  // 레거시 주간실적 엑셀: summaryData만 갱신, rawData는 건드리지 않음
+  extractLegacy(rows);
 }
 
 function openUploadModal() {
