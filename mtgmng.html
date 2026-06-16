@@ -130,7 +130,7 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 .btn:hover{background:#f3f4f6;}
 .btn-primary{background:#0f2952;color:white;border-color:#0f2952;padding:8px 20px;font-size:13px;font-weight:500;}
 .btn-primary:hover{background:#0c2347;}
-@page{size:A4 landscape;}@media print{.site-header,.site-nav,.save-bar,.print-btns,.region-actions,.meeting-actions{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.region-card{break-inside:avoid;}}
+@media print{.site-header,.site-nav,.save-bar,.print-btns,.region-actions,.meeting-actions{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.region-card{break-inside:avoid;}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -769,12 +769,6 @@ function executePrint(){
   if(!selected.length){alert('인쇄할 페이지를 선택하세요.');return;}
   closePrintModal();
   var base=location.href.split('?')[0].replace(/[^\/]+$/,'');
-  var cur=location.pathname.split('/').pop()||'salesfront.html';
-  if(selected.length===1){
-    if(selected[0]===cur){window.print();}
-    else{window.open(base+selected[0]+'?print=1','_blank');}
-    return;
-  }
   window.open(base+'print_merge.html?pages='+selected.join(','),'_blank');
 }
 </script>

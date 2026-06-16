@@ -72,7 +72,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .data-tbl tr.po-start td{border-top:2px solid #e2e8f0;}
 
 .empty-state{text-align:center;padding:40px 20px;color:#94a3b8;font-size:13px;}
-@page{size:A4 landscape;}@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
+@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.card{break-inside:avoid;}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -549,12 +549,6 @@ function executePrint(){
   if(!selected.length){alert('인쇄할 페이지를 선택하세요.');return;}
   closePrintModal();
   var base=location.href.split('?')[0].replace(/[^\/]+$/,'');
-  var cur=location.pathname.split('/').pop()||'salesfront.html';
-  if(selected.length===1){
-    if(selected[0]===cur){window.print();}
-    else{window.open(base+selected[0]+'?print=1','_blank');}
-    return;
-  }
   window.open(base+'print_merge.html?pages='+selected.join(','),'_blank');
 }
 </script>
