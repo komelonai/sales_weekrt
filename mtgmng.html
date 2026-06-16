@@ -365,10 +365,10 @@ function renderKPI(companies) {
   });
   const top = Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('kpiRow').innerHTML = `
-  <div class="kpi-card"><div class="kpi-label">2025년 미팅 완료</div><div class="kpi-value">${done25}회</div><div class="kpi-sub">${companies.length}개 거래처</div></div>
-  <div class="kpi-card"><div class="kpi-label">2026년 미팅 완료</div><div class="kpi-value" style="color:#0f2952;">${done26}회</div><div class="kpi-sub">현재까지</div></div>
-  <div class="kpi-card"><div class="kpi-label">2026년 예정 미팅</div><div class="kpi-value" style="color:#d97706;">${plan26}회</div><div class="kpi-sub">스케줄 확정</div></div>
-  <div class="kpi-card"><div class="kpi-label">주요 미팅 방식</div><div class="kpi-value" style="font-size:17px;">${top?top[0]:'-'}</div><div class="kpi-sub">${top?top[1]+'회':''}</div></div>`;
+  <div class="kpi-card"><div class="kpi-label">2025년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value">${done25}회</div><span class="kpi-sub">(${companies.length}개 거래처)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">2026년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#0f2952;">${done26}회</div><span class="kpi-sub">(현재까지)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">2026년 예정 미팅</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#d97706;">${plan26}회</div><span class="kpi-sub">(스케줄 확정)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">주요 미팅 방식</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="font-size:17px;">${top?top[0]:'-'}</div><span class="kpi-sub">${top?'('+top[1]+'회)':''}</span></div></div>`;
 }
 
 /* ── Calendar ── */
