@@ -97,7 +97,6 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
     <div class="site-meta" style="display:flex;align-items:center;gap:6px;">
       <select id="weekSelect" class="date-input" style="font-size:12px;padding:3px 8px;"></select>
       <button onclick="confirmWeek()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">확정</button>
-      <span id="weekLabel" style="font-size:12px;opacity:0.8;white-space:nowrap;"></span>
     </div>
     <div class="print-btns" style="display:flex;gap:6px;">
       <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
@@ -342,13 +341,11 @@ function initWeekSelect(savedLabel) {
   });
   const confirmed = savedLabel || sel.value;
   document.getElementById('weekDisplay').textContent = confirmed;
-  document.getElementById('weekLabel').textContent = '✓ ' + confirmed;
 }
 
 function confirmWeek() {
   const lbl = document.getElementById('weekSelect').value;
   document.getElementById('weekDisplay').textContent = lbl;
-  document.getElementById('weekLabel').textContent = '✓ ' + lbl;
   saveAll();
 }
 
