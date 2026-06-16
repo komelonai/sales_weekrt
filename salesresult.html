@@ -19,7 +19,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .page-title{font-size:22px;font-weight:700;color:#0f2952;}
 .upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
 .upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
-.upload-fname{font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.upload-fname{display:flex;flex-wrap:wrap;gap:4px;align-items:center;max-width:420px;}
+.upload-tag{display:inline-flex;align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-size:11px;color:#374151;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;margin-bottom:12px;}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .card-title{font-size:18px;font-weight:700;color:#0f2952;}
@@ -218,6 +219,7 @@ const JULJA_ITEMS = new Set(['S/P','L/T','F/G','측정공구','줄자','유광�
 const SAW_GRP2   = new Set(['SANZ','CASTELLARI S.R.L.','JAN GERICKE']);
 
 // ── 상태 ──
+let uploadedFileNames = [];
 let rawData = null;
 let annualTargets = { '줄자': 46403481, '톱': 1345000, '커터': 237000 };
 let summaryData   = {};
@@ -271,42 +273,55 @@ async function changeMonth() {
 // ── 파일 업로드 ──
 function handleFiles(files) {
   if (!files || !files.length) return;
-  const fn = document.getElementById('uploadFname');
-  if (fn) fn.textContent = files.length > 1 ? `📄 ${files.length}개 파일` : `📄 ${files[0].name}`;
-  Array.from(files).forEach(handleFile);
+  const fileArray = Array.from(files);
+  let processed = 0;
+
+  fileArray.forEach(f => {
+    if (!uploadedFileNames.includes(f.name)) uploadedFileNames.push(f.name);
+  });
+  updateUploadDisplay();
+
+  fileArray.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      processFile(wb, file.name);
+      processed++;
+      if (processed === fileArray.length) {
+        renderAll();
+        scheduleSave();
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
 }
 
-function handleFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const wb = XLSX.read(e.target.result, { type: 'array' });
-    if (file.name.includes('오더 접수 현황')) {
-      importOrderReport(wb, file.name);
-      renderAll();
-      scheduleSave();
-      return;
-    }
-    if (file.name.toUpperCase().includes('MONTHLY REPORT')) {
-      kusaManual.julja.m26 = extractMonthlyReportKusa(wb, selYear);
-      renderAll();
-      scheduleSave();
-      return;
-    }
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-    // 실적.xlsx 형식인지 확인 (헤더 첫 컬럼 = Itclsnm)
-    if (rows[0] && String(rows[0][0]).includes('Itclsnm')) {
-      kusaManual.saw    = { m26: Array(12).fill(0), m25sum: 0 };
-      kusaManual.cutter = { m26: Array(12).fill(0), m25sum: 0 };
-      rawData = extractJisik(rows);
-    } else {
-      rawData = extractLegacy(rows);
-    }
-    renderAll();
-    scheduleSave();
-  };
-  reader.readAsArrayBuffer(file);
+function processFile(wb, fileName) {
+  if (fileName.includes('오더 접수 현황')) {
+    importOrderReport(wb, fileName);
+    return;
+  }
+  if (fileName.toUpperCase().includes('MONTHLY REPORT')) {
+    kusaManual.julja.m26 = extractMonthlyReportKusa(wb, selYear);
+    return;
+  }
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (rows[0] && String(rows[0][0]).includes('Itclsnm')) {
+    kusaManual.saw    = { m26: Array(12).fill(0), m25sum: 0 };
+    kusaManual.cutter = { m26: Array(12).fill(0), m25sum: 0 };
+    rawData = extractJisik(rows);
+  } else {
+    rawData = extractLegacy(rows);
+  }
+}
+
+function updateUploadDisplay() {
+  const fn = document.getElementById('uploadFname');
+  if (!fn) return;
+  fn.innerHTML = uploadedFileNames
+    .map(n => `<span class="upload-tag" title="${n}">📄 ${n}</span>`)
+    .join('');
 }
 
 // MONTHLY REPORT: TOTALS 시트 A열 DATE 기준으로 K열 TOTAL $를 월별 합산
@@ -874,7 +889,8 @@ function clearAll() {
   negoResult    = Array(12).fill(0);
   orderReports  = {};
   summaryData   = {};
-  document.getElementById('uploadFname').textContent = '';
+  uploadedFileNames = [];
+  document.getElementById('uploadFname').innerHTML = '';
   renderAll();
   scheduleSave();
 }
