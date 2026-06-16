@@ -102,9 +102,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 <header class="site-header">
   <span class="site-logo">🇺🇸 🇯🇵 🇳🇱 🇪🇸 🇨🇴 해외영업팀 주간보고</span>
   <div style="display:flex;align-items:center;gap:10px;">
-    <div class="print-btns" style="display:flex;gap:6px;">
-      <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">현재 페이지 인쇄</button>
-      <button onclick="printAllPages()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;">전체 인쇄</button>
+        <div class="print-btns">
+      <button onclick="openPrintModal()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 인쇄</button>
     </div>
   </div>
 </header>
@@ -882,6 +881,51 @@ function clearAll() {
 
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
+</script>
+
+<!-- Print Modal -->
+<div id="printModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,82,0.4);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:24px 28px;width:340px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+    <div style="font-size:15px;font-weight:600;color:#0f2952;margin-bottom:16px;">🖨 인쇄 / PDF 저장</div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">인쇄할 페이지 선택</label>
+      <select id="printPageSelect" style="width:100%;padding:9px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;outline:none;">
+        <option value="current">현재 페이지</option>
+        <option value="salesfront.html">① 표지</option>
+        <option value="salesresult.html">② 실적보고</option>
+        <option value="kawase.html">③ 환율보고</option>
+        <option value="kusafreight.html">④ KUSA운임</option>
+        <option value="issuefound.html">⑤ 이상발생</option>
+        <option value="paymentmng.html">⑥ 선수금·미수금</option>
+        <option value="sanzmng.html">⑦ SANZ관리</option>
+        <option value="mtgmng.html">⑧ 미팅관리</option>
+        <option value="all">전체 (모든 페이지)</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closePrintModal()" style="flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;">취소</button>
+      <button onclick="executePrint()" style="flex:1;padding:9px;border-radius:7px;font-size:13px;cursor:pointer;border:none;background:#0f2952;color:white;font-weight:500;">PDF 저장</button>
+    </div>
+  </div>
+</div>
+<style>@media print{#printModal{display:none!important;}}</style>
+<script>
+function openPrintModal(){
+  const cur=location.pathname.split('/').pop()||'salesfront.html';
+  const sel=document.getElementById('printPageSelect');
+  for(const opt of sel.options){if(opt.value===cur){opt.selected=true;break;}}
+  document.getElementById('printModal').style.display='flex';
+}
+function closePrintModal(){document.getElementById('printModal').style.display='none';}
+function executePrint(){
+  const val=document.getElementById('printPageSelect').value;
+  const base=location.href.split('?')[0].replace(/[^\/]+$/,'');
+  closePrintModal();
+  if(val==='current'){window.print();}
+  else if(val==='all'){
+    ['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));
+  }else{window.open(base+val+'?print=1','_blank');}
+}
 </script>
 </body>
 </html>
