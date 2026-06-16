@@ -165,6 +165,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 
   <div id="emptyState" style="display:none;"><div
   </div>
+  <div style="text-align:center;padding:32px 0 16px;">
+    <button onclick="clearAll()" style="background:white;border:1px solid #e2e8f0;color:#94a3b8;padding:8px 24px;border-radius:6px;font-size:13px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626';" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#94a3b8';">데이터 초기화</button>
+  </div>
 </main>
 
 <script>
@@ -628,6 +631,11 @@ DataStore.load().then(saved => {
     }).catch(() => {});
   });
 });
+async function clearAll() {
+  if (!confirm('모든 데이터를 초기화하시겠습니까?')) return;
+  await DataStore.clear().catch(()=>{});
+  location.reload();
+}
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
 </script>
