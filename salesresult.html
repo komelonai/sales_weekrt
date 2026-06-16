@@ -293,11 +293,11 @@ function handleFiles(files) {
 }
 
 function processFile(wb, fileName) {
-  if (fileName.includes('오더 접수 현황')) {
+  if (fileName.replace(/\s/g,'').includes('오더접수현황')) {
     importOrderReport(wb, fileName);
     return;
   }
-  if (fileName.toUpperCase().includes('MONTHLY REPORT')) {
+  if (fileName.toUpperCase().replace(/[\s_]/g,'').includes('MONTHLYREPORT')) {
     kusaManual.julja.m26 = extractMonthlyReportKusa(wb, selYear);
     return;
   }
@@ -308,7 +308,7 @@ function processFile(wb, fileName) {
     kusaManual.cutter = { m26: Array(12).fill(0), m25sum: 0 };
     rawData = extractJisik(rows);
   } else {
-    rawData = extractLegacy(rows);
+    extractLegacy(rows);
   }
 }
 
