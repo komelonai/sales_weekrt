@@ -321,15 +321,23 @@ function parseARRows(rows) {
 }
 
 function getDday(dateVal) {
-  if (!dateVal) return null;
+  if (!dateVal && dateVal !== 0) return null;
   let d;
-  if (typeof dateVal === 'number') {
+  if (dateVal instanceof Date) {
+    d = dateVal;
+  } else if (typeof dateVal === 'number') {
+    // Excel serial date (with Excel 1900 leap year bug correction)
     d = new Date((dateVal - 25569) * 86400000);
   } else {
-    d = new Date(String(dateVal));
+    const s = String(dateVal).trim();
+    // 다양한 형식 시도: 2026.06.15 / 2026/06/15 / 2026-06-15 / 26.06.15
+    const normalized = s.replace(/[./]/g, '-').replace(/년\s*/g,'-').replace(/월\s*/g,'-').replace(/일/g,'').trim();
+    d = new Date(normalized);
+    if (isNaN(d.getTime())) d = new Date(s);
   }
-  if (isNaN(d.getTime())) return null;
+  if (!d || isNaN(d.getTime())) return null;
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return Math.floor((d - today) / 86400000);
 }
 
@@ -423,7 +431,7 @@ function renderKPI() {
     }
   });
 
-  const arDdayIdx = arCols.findIndex(c => c.includes('만기'));
+  const arDdayIdx = arCols.findIndex(c => c.includes('만기') || c.includes('기한') || c.includes('납기') || c.toLowerCase().includes('due'));
   const arAmtIdx  = arCols.findIndex(c => c.includes('금액') || c.includes('잔액'));
   const arCurrIdx = arCols.findIndex(c => c.includes('통화'));
   let overdueCount = 0;
@@ -493,7 +501,7 @@ function filterAR() {
   const ddayF = document.getElementById('arDdayFilter').value;
   const regionIdx = arCols.findIndex(c => c.includes('지역') || c.includes('국가'));
   const nameIdx = arCols.findIndex(c => c.includes('거래처명'));
-  const ddayIdx = arCols.findIndex(c => c.includes('만기'));
+  const ddayIdx = arCols.findIndex(c => c.includes('만기') || c.includes('기한') || c.includes('납기') || c.toLowerCase().includes('due'));
 
   const filtered = arData.filter(r => {
     if (region && String(r[regionIdx] || '') !== region) return false;
@@ -573,7 +581,7 @@ function renderARTable(data) {
 
   if (!arCols.length) { el.innerHTML = '<div class="empty-state" style="padding:20px;">데이터 없음</div>'; return; }
 
-  const ddayIdx = arCols.findIndex(c => c.includes('만기'));
+  const ddayIdx = arCols.findIndex(c => c.includes('만기') || c.includes('기한') || c.includes('납기') || c.toLowerCase().includes('due'));
   const remainIdx = arCols.findIndex(c => c.includes('잔액'));
 
   // 중복 컬럼명 제거 (첫 번째만 유지)
