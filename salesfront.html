@@ -241,23 +241,29 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
     <div class="ieepa-row4">
       <div class="ieepa-stat">
         <div class="ieepa-stat-label">총 제출 건수</div>
-        <div class="ieepa-stat-val" contenteditable="true" id="ieepa_total" placeholder="0">236</div>
-        <div class="ieepa-stat-unit">건</div>
+        <div style="display:inline-flex;align-items:flex-start;gap:2px;">
+          <div class="ieepa-stat-val" contenteditable="true" id="ieepa_total" placeholder="0">236</div>
+          <span style="font-size:13px;color:#94a3b8;font-weight:600;margin-top:4px;">건</span>
+        </div>
       </div>
       <div class="ieepa-stat">
         <div class="ieepa-stat-label">승인 건수</div>
-        <div class="ieepa-stat-val c-blue" contenteditable="true" id="ieepa_approved" placeholder="0">176</div>
-        <div class="ieepa-stat-unit">건</div>
+        <div style="display:inline-flex;align-items:flex-start;gap:2px;">
+          <div class="ieepa-stat-val c-blue" contenteditable="true" id="ieepa_approved" placeholder="0">176</div>
+          <span style="font-size:13px;color:#94a3b8;font-weight:600;margin-top:4px;">건</span>
+        </div>
       </div>
       <div class="ieepa-stat">
         <div class="ieepa-stat-label">승인 후 환급 대기</div>
-        <div class="ieepa-stat-val c-amber" contenteditable="true" id="ieepa_pending" placeholder="0">159</div>
-        <div class="ieepa-stat-unit">건</div>
+        <div style="display:inline-flex;align-items:flex-start;gap:2px;">
+          <div class="ieepa-stat-val c-amber" contenteditable="true" id="ieepa_pending" placeholder="0">159</div>
+          <span style="font-size:13px;color:#94a3b8;font-weight:600;margin-top:4px;">건</span>
+        </div>
       </div>
       <div class="ieepa-stat ieepa-cumul-kpi" style="border-right:none;">
-        <div class="ieepa-stat-label">누적 환급 금액</div>
-        <div class="ieepa-stat-val c-green" id="ieepa_cumul_amount" style="font-size:18px;">—</div>
-        <div class="ieepa-stat-unit" id="ieepa_cumul_rate" style="font-size:12px;font-weight:600;color:#059669;">총 환급 기준 —</div>
+        <div class="ieepa-stat-label">누적 환급 금액<br><span style="font-size:13px;font-weight:500;">(총 환급율)</span></div>
+        <div class="ieepa-stat-val c-green" id="ieepa_cumul_amount" style="font-size:22px;">—</div>
+        <div class="ieepa-stat-unit" id="ieepa_cumul_rate" style="font-size:14px;font-weight:600;color:#059669;">—</div>
       </div>
     </div>
     <!-- 환급 이력 테이블 -->
@@ -447,9 +453,9 @@ function calcRate() {
   if (rateEl) {
     if (grandTotal > 0 && cumul > 0) {
       const pct = (cumul / grandTotal * 100).toFixed(2);
-      rateEl.textContent = '총 환급 기준 ' + pct + '%';
+      rateEl.textContent = '(' + pct + '%)';
     } else {
-      rateEl.textContent = '총 환급 기준 —';
+      rateEl.textContent = '(—)';
     }
   }
   markChanged();
