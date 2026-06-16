@@ -261,9 +261,11 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
         </div>
       </div>
       <div class="ieepa-stat ieepa-cumul-kpi" style="border-right:none;">
-        <div class="ieepa-stat-label">누적 환급 금액<br><span style="font-size:13px;font-weight:500;">(총 환급율)</span></div>
-        <div class="ieepa-stat-val c-green" id="ieepa_cumul_amount" style="font-size:22px;">—</div>
-        <div class="ieepa-stat-unit" id="ieepa_cumul_rate" style="font-size:14px;font-weight:600;color:#059669;">—</div>
+        <div class="ieepa-stat-label">누적 환급 금액 <span style="font-size:13px;font-weight:500;">(총 환급율)</span></div>
+        <div style="display:inline-flex;align-items:baseline;gap:6px;">
+          <div class="ieepa-stat-val c-green" id="ieepa_cumul_amount" style="font-size:22px;">—</div>
+          <span id="ieepa_cumul_rate" style="font-size:14px;font-weight:600;color:#059669;">(—)</span>
+        </div>
       </div>
     </div>
     <!-- 환급 이력 테이블 -->
