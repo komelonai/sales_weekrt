@@ -740,9 +740,9 @@ function renderOrderStatusTable() {
 
 function renderProductFlowCharts() {
   const charts = [
-    { prodKey:'julja', label:'2. 줄자 출고 흐름', color:'#1e5ba8' },
-    { prodKey:'saw', label:'3. 톱 출고 흐름', color:'#059669' },
-    { prodKey:'cutter', label:'4. 커터 출고 흐름', color:'#d97706' },
+    { prodKey:'julja', label:'줄자 출고 실적 흐름', color:'#1e5ba8' },
+    { prodKey:'saw', label:'톱 출고 실적 흐름', color:'#059669' },
+    { prodKey:'cutter', label:'커터 출고 실적 흐름', color:'#d97706' },
   ];
   document.getElementById('productFlowCharts').innerHTML = charts
     .map(chart => renderFlowChart(chart.label, getProductMonthlyTotals(chart.prodKey), chart.color))
