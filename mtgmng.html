@@ -32,11 +32,11 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 
 /* Card */
 .card{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:12px;overflow:hidden;}
-.card-header{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;background:#fafbfc;}
+.card-header{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;background:#fafbfc;flex-wrap:wrap;gap:8px;}
 .card-title{font-size:19px;font-weight:700;color:#0f2952;}
 
 /* Controls row */
-.controls{display:flex;align-items:center;gap:10px;}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .ctrl-btn{padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.12s;}
 .ctrl-btn:hover,.ctrl-btn.active{background:#0f2952;color:white;border-color:#0f2952;}
 select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px solid #e2e8f0;background:white;color:#374151;cursor:pointer;}
@@ -61,6 +61,8 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 .m-cell.empty:hover{background:#f8fafc;}
 .m-cell.empty .plus{display:none;font-size:16px;color:#cbd5e1;line-height:48px;}
 .m-cell.empty:hover .plus{display:block;}
+.m-cell.readonly{cursor:default;}
+.m-cell.readonly:hover{filter:none;}
 
 /* Method colors — done */
 .m-cell.done-call  {background:#dbeafe;}
@@ -69,7 +71,7 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 .m-cell.done-hq    {background:#ede9fe;}
 .m-cell.done-other {background:#f1f5f9;}
 
-/* Method colors — plan (lighter + dashed border) */
+/* Method colors — plan */
 .m-cell.plan-call  {background:#eff6ff;border:1.5px dashed #93c5fd!important;}
 .m-cell.plan-visit {background:#f0fdf4;border:1.5px dashed #86efac!important;}
 .m-cell.plan-expo  {background:#fffbeb;border:1.5px dashed #fcd34d!important;}
@@ -173,11 +175,15 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 
   <div class="card">
     <div class="card-header">
-      <span class="card-title" id="calTitle">일본 거래선 미팅 관리대장</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="card-title" id="calTitle">유럽/일반지역 핵심거래선 미팅 관리대장</span>
+        <span id="readOnlyBadge" style="display:none;font-size:11px;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:4px;font-weight:600;">📋 이력 보기 (읽기 전용)</span>
+      </div>
       <div class="controls">
-        <button class="ctrl-btn" id="btn2025" onclick="setYear(2025)">2025년</button>
-        <button class="ctrl-btn" id="btn2026" onclick="setYear(2026)">2026년</button>
-        <button class="ctrl-btn active" id="btnBoth" onclick="setYear('both')">전체</button>
+        <div id="yearControls" style="display:inline-flex;gap:6px;"></div>
+        <select class="ctrl-sel" id="historySelect" onchange="loadHistory(this.value)" title="과거 연도 이력 조회 (읽기 전용)">
+          <option value="">이력 조회...</option>
+        </select>
       </div>
     </div>
 
@@ -196,7 +202,7 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
       <div class="lg"><div class="lg-dot" style="background:#fffbeb;border:1.5px dashed #fcd34d;"></div>전시회</div>
     </div>
 
-    <button class="add-row-btn" onclick="addCompany()">+ 거래처 추가</button>
+    <button class="add-row-btn" id="addRowBtn" onclick="addCompany()">+ 거래처 추가</button>
   </div>
   <div style="text-align:center;padding:32px 0 16px;">
     <button onclick="clearRegion()" style="background:white;border:1px solid #e2e8f0;color:#94a3b8;padding:8px 24px;border-radius:6px;font-size:13px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626';" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#94a3b8';">데이터 초기화</button>
@@ -217,11 +223,11 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
     <div class="form-row">
       <label class="form-label">미팅 방법</label>
       <div class="method-btns" id="methodBtns">
-        <button class="method-btn" data-method="화상"   onclick="selectMethod(this)">화상</button>
-        <button class="method-btn" data-method="출장"   onclick="selectMethod(this)">출장</button>
-        <button class="method-btn" data-method="전시회" onclick="selectMethod(this)">전시회</button>
+        <button class="method-btn" data-method="화상"    onclick="selectMethod(this)">화상</button>
+        <button class="method-btn" data-method="출장"    onclick="selectMethod(this)">출장</button>
+        <button class="method-btn" data-method="전시회"  onclick="selectMethod(this)">전시회</button>
         <button class="method-btn" data-method="본사방문" onclick="selectMethod(this)">본사방문</button>
-        <button class="method-btn" data-method="기타"   onclick="selectMethod(this)">기타</button>
+        <button class="method-btn" data-method="기타"    onclick="selectMethod(this)">기타</button>
       </div>
       <input class="form-input" id="inputMethodText" type="text" placeholder="직접 입력 (선택사항)" style="margin-top:6px;">
     </div>
@@ -242,7 +248,7 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
   </div>
 </div>
 
-<div class="save-bar">
+<div class="save-bar" id="saveBar">
   <span class="save-status" id="saveStatus">저장되지 않은 변경사항</span>
   <div style="display:flex;gap:8px;">
     <button class="btn btn-primary" onclick="saveAll()">저장</button>
@@ -250,84 +256,104 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 </div>
 
 <script>
-const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const STORAGE_KEY = 'weeklyReport_page8';
+const MONTHS   = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const CUR_YEAR  = new Date().getFullYear();
+const PREV_YEAR = CUR_YEAR - 1;
 
-const DataStore = createDataStore('page8');
+const DS_cur  = createDataStore('page8_' + CUR_YEAR);
+const DS_prev = createDataStore('page8_' + PREV_YEAR);
+
 let currentRegion = 'europe';
-let yearFilter = 'both';
+let yearFilter    = 'both';
+let isReadOnly    = false;
 
-// Modal state
 let modal = { ci: null, year: null, month: null, isNew: false, isDone: true, selectedMethod: '' };
 
 let data = {
   japan: [
     { name: '일본 후지와라', meetings: {
-      2025: [{m:1,d:'23',method:'출장',done:true},{m:2,d:'21',method:'화상',done:true},{m:6,d:'19',method:'화상',done:true},{m:8,d:'5,23',method:'화상',done:true},{m:10,d:'15',method:'출장',done:true},{m:11,d:'19,25',method:'출장',done:true}],
-      2026: [{m:1,d:'14',method:'화상',done:true},{m:4,d:'9',method:'출장',done:true},{m:5,d:'14',method:'화상',done:true},{m:6,d:'8',method:'화상',done:false}]
+      [PREV_YEAR]: [{m:1,d:'23',method:'출장',done:true},{m:2,d:'21',method:'화상',done:true},{m:6,d:'19',method:'화상',done:true},{m:8,d:'5,23',method:'화상',done:true},{m:10,d:'15',method:'출장',done:true},{m:11,d:'19,25',method:'출장',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'14',method:'화상',done:true},{m:4,d:'9',method:'출장',done:true},{m:5,d:'14',method:'화상',done:true},{m:6,d:'8',method:'화상',done:false}]
     }},
     { name: '타카기 1사업부', meetings: {
-      2025: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'22',method:'화상',done:true},{m:4,d:'28',method:'화상',done:true},{m:6,d:'20',method:'화상',done:true},{m:8,d:'23',method:'전시회',done:true},{m:10,d:'16',method:'출장',done:true},{m:11,d:'26',method:'출장',done:true}],
-      2026: [{m:1,d:'21',method:'화상',done:true},{m:5,d:'26-28',method:'전시회',done:false}]
+      [PREV_YEAR]: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'22',method:'화상',done:true},{m:4,d:'28',method:'화상',done:true},{m:6,d:'20',method:'화상',done:true},{m:8,d:'23',method:'전시회',done:true},{m:10,d:'16',method:'출장',done:true},{m:11,d:'26',method:'출장',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'21',method:'화상',done:true},{m:5,d:'26-28',method:'전시회',done:false}]
     }},
     { name: '타카기 3사업부', meetings: {
-      2025: [{m:1,d:'22',method:'출장',done:true},{m:5,d:'20',method:'화상',done:true},{m:6,d:'4',method:'화상',done:true},{m:9,d:'16',method:'출장',done:true}],
-      2026: [{m:1,d:'13',method:'화상',done:true},{m:2,d:'5',method:'화상',done:true},{m:3,d:'20,25',method:'화상',done:true},{m:4,d:'10',method:'출장',done:true},{m:6,d:'9',method:'화상',done:false}]
+      [PREV_YEAR]: [{m:1,d:'22',method:'출장',done:true},{m:5,d:'20',method:'화상',done:true},{m:6,d:'4',method:'화상',done:true},{m:9,d:'16',method:'출장',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'13',method:'화상',done:true},{m:2,d:'5',method:'화상',done:true},{m:3,d:'20,25',method:'화상',done:true},{m:4,d:'10',method:'출장',done:true},{m:6,d:'9',method:'화상',done:false}]
     }},
     { name: '트러스코', meetings: {
-      2025: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'21',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true},{m:9,d:'2',method:'화상',done:true}],
-      2026: [{m:1,d:'20',method:'화상',done:true},{m:4,d:'15',method:'화상',done:true}]
+      [PREV_YEAR]: [{m:1,d:'21',method:'출장',done:true},{m:3,d:'21',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true},{m:9,d:'2',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'20',method:'화상',done:true},{m:4,d:'15',method:'화상',done:true}]
     }},
     { name: '키이치툴스', meetings: {
-      2025: [{m:1,d:'22',method:'출장',done:true},{m:6,d:'14',method:'본사방문',done:true}],
-      2026: [{m:6,d:'1',method:'출장',done:false}]
+      [PREV_YEAR]: [{m:1,d:'22',method:'출장',done:true},{m:6,d:'14',method:'본사방문',done:true}],
+      [CUR_YEAR]:  [{m:6,d:'1',method:'출장',done:false}]
     }},
     { name: '신와', meetings: {
-      2025: [{m:4,d:'12',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true}],
-      2026: [{m:3,d:'8',method:'출장',done:true}]
+      [PREV_YEAR]: [{m:4,d:'12',method:'화상',done:true},{m:7,d:'23',method:'전시회',done:true}],
+      [CUR_YEAR]:  [{m:3,d:'8',method:'출장',done:true}]
     }},
-    { name: '마블', meetings: { 2025: [], 2026: [] }}
+    { name: '마블', meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [] }}
   ],
   europe: [
     { name: '뉴질랜드', meetings: {
-      2025: [{m:5,d:'15,16',method:'화상',done:true},{m:9,d:'29',method:'화상',done:true}],
-      2026: [{m:1,d:'12',method:'본사방문',done:true},{m:2,d:'12',method:'화상',done:true},{m:3,d:'3',method:'기타',done:true}]
+      [PREV_YEAR]: [{m:5,d:'15,16',method:'화상',done:true},{m:9,d:'29',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'12',method:'본사방문',done:true},{m:2,d:'12',method:'화상',done:true},{m:3,d:'3',method:'기타',done:true}]
     }},
     { name: '호주', meetings: {
-      2025: [{m:2,d:'18',method:'화상',done:true},{m:5,d:'18',method:'화상',done:true}],
-      2026: [{m:1,d:'',method:'화상',done:true},{m:2,d:'',method:'화상',done:true},{m:5,d:'10',method:'화상',done:true}]
+      [PREV_YEAR]: [{m:2,d:'18',method:'화상',done:true},{m:5,d:'18',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'',method:'화상',done:true},{m:2,d:'',method:'화상',done:true},{m:5,d:'10',method:'화상',done:true}]
     }},
     { name: '영국', meetings: {
-      2025: [{m:3,d:'5',method:'화상',done:true}],
-      2026: [{m:1,d:'14',method:'화상',done:true},{m:2,d:'3',method:'기타',done:true},{m:5,d:'23',method:'화상',done:true}]
+      [PREV_YEAR]: [{m:3,d:'5',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'14',method:'화상',done:true},{m:2,d:'3',method:'기타',done:true},{m:5,d:'23',method:'화상',done:true}]
     }},
-    { name: '스페인 (ACHA)', meetings: { 2025: [], 2026: [{m:2,d:'',method:'기타',done:true}] }},
+    { name: '스페인 (ACHA)', meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:2,d:'',method:'기타',done:true}] }},
     { name: '네덜란드 (메모)', meetings: {
-      2025: [{m:1,d:'10',method:'화상',done:true},{m:2,d:'21',method:'화상',done:true},{m:4,d:'',method:'화상',done:true},{m:5,d:'27',method:'화상',done:true},{m:8,d:'22',method:'화상',done:true}],
-      2026: [{m:1,d:'3',method:'기타',done:true},{m:2,d:'23',method:'화상',done:true},{m:3,d:'8',method:'화상',done:true}]
+      [PREV_YEAR]: [{m:1,d:'10',method:'화상',done:true},{m:2,d:'21',method:'화상',done:true},{m:4,d:'',method:'화상',done:true},{m:5,d:'27',method:'화상',done:true},{m:8,d:'22',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'3',method:'기타',done:true},{m:2,d:'23',method:'화상',done:true},{m:3,d:'8',method:'화상',done:true}]
     }},
-    { name: '콜롬비아', meetings: { 2025: [], 2026: [] }},
-    { name: '파나마', meetings: { 2025: [], 2026: [] }},
-    { name: '핀란드 (STC)', meetings: { 2025: [], 2026: [{m:1,d:'4',method:'기타',done:true}] }},
-    { name: '이스라엘', meetings: { 2025: [], 2026: [{m:1,d:'5',method:'기타',done:true}] }},
-    { name: '스페인 (NAROTEK)', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true}] }},
-    { name: '프랑스 (Wilmart)', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true},{m:2,d:'16',method:'화상',done:true}] }},
+    { name: '콜롬비아',         meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [] }},
+    { name: '파나마',           meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [] }},
+    { name: '핀란드 (STC)',     meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:1,d:'4',method:'기타',done:true}] }},
+    { name: '이스라엘',         meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:1,d:'5',method:'기타',done:true}] }},
+    { name: '스페인 (NAROTEK)', meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:1,d:'6',method:'기타',done:true}] }},
+    { name: '프랑스 (Wilmart)', meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:1,d:'6',method:'기타',done:true},{m:2,d:'16',method:'화상',done:true}] }},
     { name: '이탈리아 (Ferval)', meetings: {
-      2025: [{m:10,d:'25',method:'출장',done:true}],
-      2026: [{m:1,d:'9',method:'출장',done:true}]
+      [PREV_YEAR]: [{m:10,d:'25',method:'출장',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'9',method:'출장',done:true}]
     }},
-    { name: '체코 (Levior)', meetings: { 2025: [], 2026: [{m:2,d:'',method:'기타',done:false}] }},
-    { name: '라트비아', meetings: { 2025: [], 2026: [{m:1,d:'6',method:'기타',done:true}] }},
-    { name: '에스토니아', meetings: {
-      2025: [{m:5,d:'19',method:'화상',done:true}],
-      2026: [{m:1,d:'6',method:'기타',done:true}]
+    { name: '체코 (Levior)',  meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:2,d:'',method:'기타',done:false}] }},
+    { name: '라트비아',       meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [{m:1,d:'6',method:'기타',done:true}] }},
+    { name: '에스토니아',     meetings: {
+      [PREV_YEAR]: [{m:5,d:'19',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'6',method:'기타',done:true}]
     }},
     { name: '카스텔라리 (톱)', meetings: {
-      2025: [{m:7,d:'',method:'화상',done:true},{m:8,d:'',method:'화상',done:true},{m:9,d:'',method:'화상',done:true}],
-      2026: [{m:1,d:'28',method:'화상',done:true},{m:3,d:'11',method:'출장',done:true},{m:4,d:'20',method:'출장',done:true}]
+      [PREV_YEAR]: [{m:7,d:'',method:'화상',done:true},{m:8,d:'',method:'화상',done:true},{m:9,d:'',method:'화상',done:true}],
+      [CUR_YEAR]:  [{m:1,d:'28',method:'화상',done:true},{m:3,d:'11',method:'출장',done:true},{m:4,d:'20',method:'출장',done:true}]
     }}
   ]
 };
+
+/* ── Init UI ── */
+function initYearButtons() {
+  document.getElementById('yearControls').innerHTML =
+    `<button class="ctrl-btn" id="btnPrev" onclick="setYear(${PREV_YEAR})">${PREV_YEAR}년</button>` +
+    `<button class="ctrl-btn" id="btnCur"  onclick="setYear(${CUR_YEAR})">${CUR_YEAR}년</button>` +
+    `<button class="ctrl-btn active" id="btnBoth" onclick="setYear('both')">전체</button>`;
+}
+
+function initHistorySelect() {
+  const sel = document.getElementById('historySelect');
+  for (let y = CUR_YEAR - 2; y >= 2023; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + '년';
+    sel.appendChild(opt);
+  }
+}
 
 /* ── Region / Year ── */
 function switchRegion(region, btn) {
@@ -339,12 +365,139 @@ function switchRegion(region, btn) {
 
 function setYear(y) {
   yearFilter = y;
-  ['btn2025','btn2026','btnBoth'].forEach(id => document.getElementById(id).classList.remove('active'));
-  const map = {2025:'btn2025', 2026:'btn2026', both:'btnBoth'};
-  document.getElementById(map[y]).classList.add('active');
+  ['btnPrev','btnCur','btnBoth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  const map = { [PREV_YEAR]: 'btnPrev', [CUR_YEAR]: 'btnCur', both: 'btnBoth' };
+  const btn = document.getElementById(map[y]);
+  if (btn) btn.classList.add('active');
   render();
 }
 
+/* ── History ── */
+async function loadHistory(yearStr) {
+  if (!yearStr) {
+    await reloadCurrent();
+    return;
+  }
+  const yr = parseInt(yearStr);
+  const ds = createDataStore('page8_' + yr);
+  const saved = await ds.load().catch(() => null);
+  if (!saved || (!saved.japan?.length && !saved.europe?.length)) {
+    alert(yr + '년 저장된 데이터가 없습니다.');
+    document.getElementById('historySelect').value = '';
+    return;
+  }
+  data = {
+    japan:  (saved.japan  || []).map(co => ({ name: co.name, meetings: { [yr]: co.meetings || [] } })),
+    europe: (saved.europe || []).map(co => ({ name: co.name, meetings: { [yr]: co.meetings || [] } }))
+  };
+  yearFilter = yr;
+  isReadOnly = true;
+  updateReadOnlyUI();
+  render();
+}
+
+async function reloadCurrent() {
+  document.getElementById('historySelect').value = '';
+  isReadOnly = false;
+  yearFilter = 'both';
+  await loadAll();
+  updateReadOnlyUI();
+  setYear('both');
+}
+
+function updateReadOnlyUI() {
+  document.getElementById('readOnlyBadge').style.display = isReadOnly ? '' : 'none';
+  document.getElementById('addRowBtn').style.display     = isReadOnly ? 'none' : '';
+  document.getElementById('saveBar').style.display       = isReadOnly ? 'none' : '';
+}
+
+/* ── Data helpers ── */
+function extractYearData(src, year) {
+  const result = { japan: [], europe: [] };
+  ['japan','europe'].forEach(region => {
+    result[region] = (src[region] || []).map(co => ({
+      name: co.name,
+      meetings: co.meetings?.[year] || []
+    }));
+  });
+  return result;
+}
+
+function mergeYearData(prevSaved, curSaved) {
+  const result = { japan: [], europe: [] };
+  ['japan','europe'].forEach(region => {
+    const map = {};
+    (prevSaved[region] || []).forEach(co => {
+      map[co.name] = { name: co.name, meetings: { [PREV_YEAR]: co.meetings || [], [CUR_YEAR]: [] } };
+    });
+    (curSaved[region] || []).forEach(co => {
+      if (map[co.name]) {
+        map[co.name].meetings[CUR_YEAR] = co.meetings || [];
+      } else {
+        map[co.name] = { name: co.name, meetings: { [PREV_YEAR]: [], [CUR_YEAR]: co.meetings || [] } };
+      }
+    });
+    result[region] = Object.values(map);
+  });
+  return result;
+}
+
+/* ── Migration from legacy page8 ── */
+async function migrateLegacyIfNeeded() {
+  const curCheck = await DS_cur.load().catch(() => null);
+  if (curCheck?.japan?.length || curCheck?.europe?.length) return;
+  const legacy = await createDataStore('page8').load().catch(() => null);
+  if (!legacy) return;
+  const sample = (legacy.japan || legacy.europe || [])[0]?.meetings;
+  if (!sample || Array.isArray(sample)) return; // not old format
+  await Promise.all([
+    DS_cur.save(extractYearData(legacy, CUR_YEAR)),
+    DS_prev.save(extractYearData(legacy, PREV_YEAR))
+  ]);
+}
+
+/* ── Persist ── */
+async function loadAll() {
+  const [cur, prev] = await Promise.all([
+    DS_cur.load().catch(() => null),
+    DS_prev.load().catch(() => null)
+  ]);
+  const curD  = (cur  && (cur.japan?.length  || cur.europe?.length))  ? cur  : { japan: [], europe: [] };
+  const prevD = (prev && (prev.japan?.length || prev.europe?.length)) ? prev : { japan: [], europe: [] };
+  if (curD.japan.length || curD.europe.length || prevD.japan.length || prevD.europe.length) {
+    data = mergeYearData(prevD, curD);
+  }
+}
+
+async function saveAll() {
+  if (isReadOnly) return;
+  document.getElementById('saveStatus').textContent = '저장 중...';
+  try {
+    await Promise.all([
+      DS_cur.save(extractYearData(data, CUR_YEAR)),
+      DS_prev.save(extractYearData(data, PREV_YEAR))
+    ]);
+    document.getElementById('saveStatus').textContent = '저장 완료 · ' + new Date().toLocaleTimeString('ko-KR');
+  } catch(e) {
+    document.getElementById('saveStatus').textContent = '저장 실패 — 다시 시도';
+  }
+}
+
+async function clearRegion() {
+  if (!confirm('현재 탭(' + (currentRegion==='japan'?'일본':'유럽') + ') 데이터를 초기화하시겠습니까?')) return;
+  data[currentRegion] = [];
+  await saveAll();
+  render();
+}
+
+function markChanged() {
+  document.getElementById('saveStatus').textContent = '저장되지 않은 변경사항';
+}
+
+/* ── Render ── */
 function render() {
   const companies = data[currentRegion];
   document.getElementById('calTitle').textContent = currentRegion === 'japan'
@@ -353,36 +506,48 @@ function render() {
   renderCalendar(companies);
 }
 
-/* ── KPI ── */
 function renderKPI(companies) {
-  let done25=0, done26=0, plan26=0;
+  if (isReadOnly) {
+    const yr = yearFilter;
+    let done=0, plan=0;
+    const methods = {};
+    companies.forEach(c => {
+      done += (c.meetings[yr]||[]).filter(m=>m.done).length;
+      plan += (c.meetings[yr]||[]).filter(m=>!m.done).length;
+      (c.meetings[yr]||[]).forEach(m => { const k=m.method||'기타'; methods[k]=(methods[k]||0)+1; });
+    });
+    const top = Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('kpiRow').innerHTML = `
+      <div class="kpi-card"><div class="kpi-label">${yr}년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value">${done}회</div><span class="kpi-sub">(${companies.length}개 거래처)</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">${yr}년 예정 미팅</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#d97706;">${plan}회</div><span class="kpi-sub">(스케줄 확정)</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">주요 미팅 방식</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="font-size:17px;">${top?top[0]:'-'}</div><span class="kpi-sub">${top?'('+top[1]+'회)':''}</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">거래처 수</div><div class="kpi-value">${companies.length}개</div></div>`;
+    return;
+  }
+  let donePrev=0, doneCur=0, planCur=0;
   const methods = {};
   companies.forEach(c => {
-    done25 += (c.meetings[2025]||[]).filter(m=>m.done).length;
-    done26 += (c.meetings[2026]||[]).filter(m=>m.done).length;
-    plan26 += (c.meetings[2026]||[]).filter(m=>!m.done).length;
-    (c.meetings[2026]||[]).forEach(m => { const k=m.method||'기타'; methods[k]=(methods[k]||0)+1; });
+    donePrev += (c.meetings[PREV_YEAR]||[]).filter(m=>m.done).length;
+    doneCur  += (c.meetings[CUR_YEAR] ||[]).filter(m=>m.done).length;
+    planCur  += (c.meetings[CUR_YEAR] ||[]).filter(m=>!m.done).length;
+    (c.meetings[CUR_YEAR]||[]).forEach(m => { const k=m.method||'기타'; methods[k]=(methods[k]||0)+1; });
   });
   const top = Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('kpiRow').innerHTML = `
-  <div class="kpi-card"><div class="kpi-label">2025년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value">${done25}회</div><span class="kpi-sub">(${companies.length}개 거래처)</span></div></div>
-  <div class="kpi-card"><div class="kpi-label">2026년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#0f2952;">${done26}회</div><span class="kpi-sub">(현재까지)</span></div></div>
-  <div class="kpi-card"><div class="kpi-label">2026년 예정 미팅</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#d97706;">${plan26}회</div><span class="kpi-sub">(스케줄 확정)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">${PREV_YEAR}년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value">${donePrev}회</div><span class="kpi-sub">(${companies.length}개 거래처)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">${CUR_YEAR}년 미팅 완료</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#0f2952;">${doneCur}회</div><span class="kpi-sub">(현재까지)</span></div></div>
+  <div class="kpi-card"><div class="kpi-label">${CUR_YEAR}년 예정 미팅</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="color:#d97706;">${planCur}회</div><span class="kpi-sub">(스케줄 확정)</span></div></div>
   <div class="kpi-card"><div class="kpi-label">주요 미팅 방식</div><div style="display:inline-flex;align-items:baseline;gap:5px;"><div class="kpi-value" style="font-size:17px;">${top?top[0]:'-'}</div><span class="kpi-sub">${top?'('+top[1]+'회)':''}</span></div></div>`;
 }
 
-/* ── Calendar ── */
 function methodClass(method, done) {
   if (!method) return done ? 'done-other' : 'plan-other';
-  const m = method;
-  const type = m.includes('화상') ? 'call' : m.includes('출장') ? 'visit' : m.includes('전시') ? 'expo' : m.includes('본사') ? 'hq' : 'other';
-  return (done ? 'done-' : 'plan-') + type;
+  const type = method.includes('화상')?'call':method.includes('출장')?'visit':method.includes('전시')?'expo':method.includes('본사')?'hq':'other';
+  return (done?'done-':'plan-')+type;
 }
 
 function renderCalendar(companies) {
-  const show25 = yearFilter === 2025 || yearFilter === 'both';
-  const show26 = yearFilter === 2026 || yearFilter === 'both';
-  const years = [show25 && 2025, show26 && 2026].filter(Boolean);
+  const years = yearFilter === 'both' ? [PREV_YEAR, CUR_YEAR] : [yearFilter];
 
   let html = '<table class="meeting-tbl"><thead><tr>';
   html += '<th class="co-hd" rowspan="2">거래처</th>';
@@ -392,7 +557,10 @@ function renderCalendar(companies) {
   html += '</tr></thead><tbody>';
 
   companies.forEach((co, ci) => {
-    html += `<tr><td class="co-cell" onclick="openNameEdit(${ci})" title="클릭하여 이름 수정" style="cursor:pointer;">${co.name}</td>`;
+    const nameCell = isReadOnly
+      ? `<td class="co-cell">${co.name}</td>`
+      : `<td class="co-cell" onclick="openNameEdit(${ci})" title="클릭하여 이름 수정" style="cursor:pointer;">${co.name}</td>`;
+    html += `<tr>${nameCell}`;
     years.forEach(yr => {
       MONTHS.forEach((_, mi) => {
         const mo = mi + 1;
@@ -401,22 +569,24 @@ function renderCalendar(companies) {
           const cls = methodClass(entry.method, entry.done);
           const dayTxt = entry.d ? String(entry.d) : '';
           const tooltip = `${co.name} · ${yr}년 ${mo}월${dayTxt?' '+dayTxt+'일':''} · ${entry.method||''} · ${entry.done?'완료':'예정'}`;
-          html += `<td style="padding:0;"><div class="m-cell ${cls}" onclick="openModal(${ci},${yr},${mo})" title="${tooltip}">
-            <div class="m-cell-inner">
-              <div class="day">${dayTxt||'·'}</div>
-              <div class="mth">${entry.method?entry.method.substring(0,2):''}</div>
-            </div></div></td>`;
+          const click = isReadOnly ? `class="m-cell ${cls} readonly" title="${tooltip}"`
+                                   : `class="m-cell ${cls}" onclick="openModal(${ci},${yr},${mo})" title="${tooltip}"`;
+          html += `<td style="padding:0;"><div ${click}><div class="m-cell-inner">
+            <div class="day">${dayTxt||'·'}</div>
+            <div class="mth">${entry.method?entry.method.substring(0,2):''}</div>
+          </div></div></td>`;
         } else {
-          html += `<td style="padding:0;"><div class="m-cell empty" onclick="openModal(${ci},${yr},${mo},true)">
-            <div class="m-cell-inner"><div class="plus">+</div></div>
-          </div></td>`;
+          const click = isReadOnly ? `class="m-cell empty readonly"`
+                                   : `class="m-cell empty" onclick="openModal(${ci},${yr},${mo},true)"`;
+          html += `<td style="padding:0;"><div ${click}><div class="m-cell-inner">
+            <div class="plus">${isReadOnly?'':'+' }</div>
+          </div></div></td>`;
         }
       });
     });
     html += '</tr>';
   });
 
-  // Total row
   html += '<tr><td class="co-cell total-cell" style="font-weight:600;">월간 합계</td>';
   years.forEach(yr => {
     MONTHS.forEach((_, mi) => {
@@ -431,46 +601,35 @@ function renderCalendar(companies) {
 
 /* ── Modal ── */
 function openModal(ci, year, month, isNew=false) {
+  if (isReadOnly) return;
   const co = data[currentRegion][ci];
   const entry = !isNew ? (co.meetings[year]||[]).find(m=>m.m===month) : null;
   modal = { ci, year, month, isNew: isNew || !entry };
 
-  document.getElementById('modalTitle').textContent = `${co.name}`;
+  document.getElementById('modalTitle').textContent = co.name;
   document.getElementById('modalSub').textContent = `${year}년 ${MONTHS[month-1]}`;
   document.getElementById('inputDay').value = entry ? (entry.d||'') : '';
   document.getElementById('inputMethodText').value = '';
 
-  // Method buttons
   const selMethod = entry ? entry.method : '';
   document.querySelectorAll('.method-btn').forEach(btn => {
     btn.className = 'method-btn';
-    if (btn.dataset.method === selMethod) {
-      selectMethod(btn);
-    }
+    if (btn.dataset.method === selMethod) selectMethod(btn);
   });
-  // If method not in presets, show in text
   const presets = ['화상','출장','전시회','본사방문','기타'];
-  if (selMethod && !presets.includes(selMethod)) {
-    document.getElementById('inputMethodText').value = selMethod;
-  }
+  if (selMethod && !presets.includes(selMethod)) document.getElementById('inputMethodText').value = selMethod;
 
-  const done = entry ? entry.done : true;
-  setDone(done);
-
+  setDone(entry ? entry.done : true);
   document.getElementById('deleteBtn').style.display = modal.isNew ? 'none' : '';
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('inputDay').focus();
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-function closeModalIfBg(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalIfBg(e) { if (e.target===document.getElementById('modalOverlay')) closeModal(); }
 
 function selectMethod(btn) {
-  document.querySelectorAll('.method-btn').forEach(b => b.className = 'method-btn');
+  document.querySelectorAll('.method-btn').forEach(b => b.className='method-btn');
   const m = btn.dataset.method;
   const cls = m==='화상'?'sel-call':m==='출장'?'sel-visit':m==='전시회'?'sel-expo':m==='본사방문'?'sel-hq':'sel-other';
   btn.classList.add(cls);
@@ -480,11 +639,12 @@ function selectMethod(btn) {
 
 function setDone(done) {
   modal.isDone = done;
-  document.getElementById('btnDone').className = 'done-btn' + (done ? ' active-done' : '');
-  document.getElementById('btnPlan').className = 'done-btn' + (!done ? ' active-plan' : '');
+  document.getElementById('btnDone').className = 'done-btn'+(done?' active-done':'');
+  document.getElementById('btnPlan').className = 'done-btn'+(!done?' active-plan':'');
 }
 
 function saveMeeting() {
+  if (isReadOnly) return;
   const co = data[currentRegion][modal.ci];
   if (!co.meetings[modal.year]) co.meetings[modal.year] = [];
   const day = document.getElementById('inputDay').value.trim();
@@ -494,66 +654,44 @@ function saveMeeting() {
   const entry = { m: modal.month, d: day, method, done: modal.isDone };
   if (idx >= 0) co.meetings[modal.year][idx] = entry;
   else co.meetings[modal.year].push(entry);
-  closeModal();
-  render();
-  markChanged();
+  closeModal(); render(); markChanged();
 }
 
 function deleteMeeting() {
+  if (isReadOnly) return;
   const co = data[currentRegion][modal.ci];
   const arr = co.meetings[modal.year] || [];
   const idx = arr.findIndex(m => m.m === modal.month);
   if (idx >= 0) arr.splice(idx, 1);
-  closeModal();
-  render();
-  markChanged();
+  closeModal(); render(); markChanged();
 }
 
 function openNameEdit(ci) {
+  if (isReadOnly) return;
   const co = data[currentRegion][ci];
   const n = prompt('거래처명 수정:', co.name);
   if (n && n !== co.name) { co.name = n; render(); markChanged(); }
 }
 
 function addCompany() {
+  if (isReadOnly) return;
   const n = prompt('새 거래처명:');
   if (!n) return;
-  data[currentRegion].push({ name: n, meetings: { 2025: [], 2026: [] } });
-  render();
-  markChanged();
+  data[currentRegion].push({ name: n, meetings: { [PREV_YEAR]: [], [CUR_YEAR]: [] } });
+  render(); markChanged();
 }
 
-/* ── Persist ── */
-async function clearRegion() {
-  if (!confirm('현재 탭 데이터를 초기화하시겠습니까?')) return;
-  // 현재 지역만 삭제 후 나머지 저장
-  const saved = await DataStore.load().catch(() => null);
-  if (saved) { delete saved[currentRegion]; await DataStore.save(saved).catch(() => {}); }
-  location.reload();
-}
-async function saveAll() {
-  document.getElementById('lastUpdate').textContent = new Date().toISOString().slice(0,10);
-  document.getElementById('saveStatus').textContent = '저장 중...';
-  try {
-    await DataStore.save(data);
-    document.getElementById('saveStatus').textContent = '저장 완료 · ' + new Date().toLocaleTimeString('ko-KR');
-  } catch(e) {
-    document.getElementById('saveStatus').textContent = '저장 실패 — 다시 시도';
-  }
-}
-async function loadAll() {
-  const s = await DataStore.load().catch(() => null);
-  if (!s) return;
-  try { if(s.japan) data.japan=s.japan; if(s.europe) data.europe=s.europe; } catch(e){}
-}
-function markChanged() {
-  document.getElementById('saveStatus').textContent = '저장되지 않은 변경사항';
-}
-
-// Keyboard shortcut
+/* ── Bootstrap ── */
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
-loadAll().then(() => render()).catch(() => render());
+initYearButtons();
+initHistorySelect();
+
+migrateLegacyIfNeeded()
+  .then(() => loadAll())
+  .then(() => render())
+  .catch(() => render());
+
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
 </script>
