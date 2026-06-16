@@ -376,8 +376,10 @@ function parseExcelDate(value) {
 }
 
 function importOrderReport(wb, fileName) {
-  // 항상 화면에서 선택한 연/월 기준으로 저장 (파일명 파싱 오류 방지)
-  const ym = `${selYear}-${String(selMonth).padStart(2,'0')}`;
+  const match = fileName.match(/(20\d{2})[.\-_ ]?(\d{1,2})/);
+  const year  = match ? parseInt(match[1], 10) : selYear;
+  const month = match ? parseInt(match[2], 10) : selMonth;
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
   const ws = wb.Sheets[wb.SheetNames[0]];
   const allRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
