@@ -19,8 +19,6 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .page-title{font-size:22px;font-weight:700;color:#0f2952;}
 .upload-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;transition:all 0.15s;white-space:nowrap;}
 .upload-btn:hover{border-color:#0f2952;color:#0f2952;background:#f8fafc;}
-.upload-fname{display:flex;flex-wrap:wrap;gap:4px;align-items:center;max-width:420px;}
-.upload-tag{display:inline-flex;align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-size:11px;color:#374151;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .card{background:white;border-radius:10px;border:1px solid #e2e8f0;padding:12px 16px;margin-bottom:12px;}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .card-title{font-size:18px;font-weight:700;color:#0f2952;}
@@ -124,9 +122,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
   <div class="page-header">
     <span class="page-title">해외영업팀 주간 실적 보고</span>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span class="upload-fname" id="uploadFname"></span>
-      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">↑ 파일 업로드</button>
-      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+      <button class="upload-btn" onclick="openUploadModal()">↑ 파일 업로드</button>
       <span class="save-status" id="saveStatus"></span>
     </div>
   </div>
@@ -279,7 +275,7 @@ function handleFiles(files) {
   fileArray.forEach(f => {
     if (!uploadedFileNames.includes(f.name)) uploadedFileNames.push(f.name);
   });
-  updateUploadDisplay();
+  renderUploadFileList();
 
   fileArray.forEach(file => {
     const reader = new FileReader();
@@ -316,12 +312,30 @@ function processFile(wb, fileName) {
   }
 }
 
-function updateUploadDisplay() {
-  const fn = document.getElementById('uploadFname');
-  if (!fn) return;
-  fn.innerHTML = uploadedFileNames
-    .map(n => `<span class="upload-tag" title="${n}">📄 ${n}</span>`)
-    .join('');
+function openUploadModal() {
+  renderUploadFileList();
+  document.getElementById('uploadModal').style.display = 'flex';
+}
+function closeUploadModal() {
+  document.getElementById('uploadModal').style.display = 'none';
+}
+function renderUploadFileList() {
+  const list = document.getElementById('uploadFileList');
+  if (!list) return;
+  if (!uploadedFileNames.length) {
+    list.innerHTML = '<div style="text-align:center;padding:18px;font-size:13px;color:#94a3b8;">업로드된 파일 없음</div>';
+    return;
+  }
+  list.innerHTML = uploadedFileNames.map((name, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;${i < uploadedFileNames.length-1?'border-bottom:1px solid #f1f5f9;':''}">
+      <span style="font-size:13px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;" title="${name}">📄 ${name}</span>
+      <button onclick="removeUploadedFile(${i})" style="width:20px;height:20px;border:none;background:none;color:#94a3b8;cursor:pointer;font-size:14px;flex-shrink:0;border-radius:3px;" onmouseover="this.style.background='#fee2e2';this.style.color='#dc2626'" onmouseout="this.style.background='none';this.style.color='#94a3b8'">✕</button>
+    </div>`
+  ).join('');
+}
+function removeUploadedFile(i) {
+  uploadedFileNames.splice(i, 1);
+  renderUploadFileList();
 }
 
 // MONTHLY REPORT: TOTALS 시트 A열 DATE 기준으로 K열 TOTAL $를 월별 합산
@@ -890,7 +904,7 @@ function clearAll() {
   orderReports  = {};
   summaryData   = {};
   uploadedFileNames = [];
-  document.getElementById('uploadFname').innerHTML = '';
+  renderUploadFileList();
   renderAll();
   scheduleSave();
 }
@@ -898,6 +912,20 @@ function clearAll() {
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
 </script>
+
+<!-- File Upload Modal -->
+<input type="file" id="fileInput" accept=".xlsx,.xls" multiple onchange="handleFiles(this.files)" style="display:none;">
+<div id="uploadModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,82,0.4);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:22px 26px;width:380px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+    <div style="font-size:15px;font-weight:600;color:#0f2952;margin-bottom:14px;">📂 파일 업로드</div>
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">업로드된 파일</div>
+    <div id="uploadFileList" style="border:1px solid #e2e8f0;border-radius:8px;min-height:56px;max-height:220px;overflow-y:auto;margin-bottom:14px;"></div>
+    <button onclick="document.getElementById('fileInput').click()" style="width:100%;padding:10px;border:2px dashed #cbd5e1;border-radius:8px;background:#f8fafc;color:#64748b;font-size:13px;cursor:pointer;margin-bottom:14px;transition:all .15s;" onmouseover="this.style.borderColor='#0f2952';this.style.color='#0f2952';" onmouseout="this.style.borderColor='#cbd5e1';this.style.color='#64748b';">+ 파일 추가 (.xlsx · 최대 10개)</button>
+    <div style="display:flex;justify-content:flex-end;">
+      <button onclick="closeUploadModal()" style="padding:8px 22px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:white;color:#374151;">닫기</button>
+    </div>
+  </div>
+</div>
 
 <!-- Print Modal -->
 <div id="printModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,82,0.4);z-index:1000;align-items:center;justify-content:center;">
