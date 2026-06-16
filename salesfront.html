@@ -537,7 +537,7 @@ if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.prin
     </div>
   </div>
 </div>
-<style>@media print{#printModal{display:none!important;}}</style>
+<style>@page{size:A4 landscape;}@media print{#printModal{display:none!important;}}</style>
 <script>
 function openPrintModal(){
   var cur=location.pathname.split('/').pop()||'salesfront.html';
