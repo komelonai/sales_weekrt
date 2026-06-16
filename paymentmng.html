@@ -451,7 +451,7 @@ function renderKPI() {
     ? Object.entries(byC).map(([c,v]) =>
         `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;">
           <span style="font-size:11px;background:${color}18;color:${color};border-radius:3px;padding:1px 5px;font-weight:600;">${c}</span>
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">${fmtAmt(v)}</span>
+          <span style="font-size:18px;font-weight:700;color:#1e293b;">${fmtAmt(v)}</span>
         </span>`).join('')
     : `<span style="font-size:13px;color:#94a3b8;">-</span>`;
 
@@ -463,7 +463,7 @@ function renderKPI() {
   </div>
   <div class="kpi-card" style="border-top:3px solid #2563eb;">
     <div class="kpi-label" style="color:#2563eb;font-weight:600;">선수금 · NEGO 미등록 금액</div>
-    <div class="kpi-value" style="font-size:16px;line-height:1.8;margin-top:4px;">${currLines(negoZeroByC,'#2563eb')}</div>
+    <div class="kpi-value" style="font-size:14px;line-height:1.8;margin-top:4px;">${currLines(negoZeroByC,'#2563eb')}</div>
     <div class="kpi-sub">미등록 PI 합산 (통화별)</div>
   </div>
   <div class="kpi-card" style="border-top:3px solid #dc2626;">
@@ -473,7 +473,7 @@ function renderKPI() {
   </div>
   <div class="kpi-card" style="border-top:3px solid #dc2626;">
     <div class="kpi-label" style="color:#dc2626;font-weight:600;">미수금 · 만기 초과 금액</div>
-    <div class="kpi-value" style="font-size:16px;line-height:1.8;margin-top:4px;">${currLines(overdueByC,'#dc2626')}</div>
+    <div class="kpi-value" style="font-size:14px;line-height:1.8;margin-top:4px;">${currLines(overdueByC,'#dc2626')}</div>
     <div class="kpi-sub">만기 지난 총액 (통화별)</div>
   </div>`;
 }
