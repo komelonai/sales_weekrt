@@ -130,7 +130,7 @@ select.ctrl-sel{padding:5px 8px;border-radius:5px;font-size:12px;border:1px soli
 .btn:hover{background:#f3f4f6;}
 .btn-primary{background:#0f2952;color:white;border-color:#0f2952;padding:8px 20px;font-size:13px;font-weight:500;}
 .btn-primary:hover{background:#0c2347;}
-@media print{.site-header,.site-nav,.save-bar,.print-btns,.region-actions,.meeting-actions{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.region-card{break-inside:avoid;}}
+@page{size:A4 landscape;}@media print{.site-header,.site-nav,.save-bar,.print-btns,.region-actions,.meeting-actions{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.region-card{break-inside:avoid;}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -743,7 +743,7 @@ if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.prin
     </div>
   </div>
 </div>
-<style>@page{size:A4 landscape;}@media print{#printModal{display:none!important;}}</style>
+<style>@media print{#printModal{display:none!important;}}</style>
 <script>
 function openPrintModal(){
   var cur=location.pathname.split('/').pop()||'salesfront.html';

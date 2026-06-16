@@ -65,7 +65,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 .btn-primary:hover{background:#0c2347;}
 
 .date-badge{font-size:12px;background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:4px;}
-@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns,.btn{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.section-card{break-inside:avoid;}}
+@page{size:A4 landscape;}@media print{.site-header,.site-nav,.save-bar,.upload-zone,.print-btns,.btn{display:none!important;}body{background:white!important;}.main{padding:10px!important;max-width:none!important;}.section-card{break-inside:avoid;}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -515,7 +515,7 @@ if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.prin
     </div>
   </div>
 </div>
-<style>@page{size:A4 landscape;}@media print{#printModal{display:none!important;}}</style>
+<style>@media print{#printModal{display:none!important;}}</style>
 <script>
 function openPrintModal(){
   var cur=location.pathname.split('/').pop()||'salesfront.html';
