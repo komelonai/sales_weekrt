@@ -105,7 +105,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
     </div>
   </div>
 
-  <div id="dashboard">
+  <div id="emptyState" style="text-align:center;padding:60px 20px;color:#94a3b8;font-size:14px;">
+    <div style="font-size:40px;margin-bottom:12px;">📊</div>
+    <div>파일을 업로드하여 환율 데이터를 불러오세요</div>
+  </div>
+
+  <div id="dashboard" style="display:none;">
 
     <!-- Currency KPI Cards -->
     <div class="currency-grid" id="currencyCards"></div>
@@ -340,7 +345,7 @@ function computeWeeklyAverages(dataRows) {
 
 function buildAndRender(dataRows) {
   uploadedData = computeWeeklyAverages(dataRows);
-  renderDashboard(uploadedData);
+  showDashboard(uploadedData);
   DataStore.save(uploadedData).catch(e => console.warn('[DataStore] 저장 오류:', e));
 }
 
@@ -601,15 +606,31 @@ function destroyChart(id) {
   if (charts[id]) { charts[id].destroy(); delete charts[id]; }
 }
 
-// 페이지 로드 시 PDF 고정값으로 즉시 렌더 → Firestore에 저장된 데이터 있으면 덮어씀
-renderDashboard(PDF_WEEKLY);
+function showDashboard(data) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('dashboard').style.display = '';
+  renderDashboard(data);
+}
+function showEmptyState() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('emptyState').style.display = '';
+}
+
 DataStore.load().then(saved => {
-  if (saved) { uploadedData = saved; renderDashboard(saved); }
-}).catch(() => {});
+  if (saved && saved.labels && saved.labels.length) {
+    uploadedData = saved;
+    showDashboard(saved);
+  } else {
+    showEmptyState();
+  }
+}).catch(() => showEmptyState());
+
 async function clearAll() {
   if (!confirm('모든 데이터를 초기화하시겠습니까?')) return;
   await DataStore.clear().catch(()=>{});
-  location.reload();
+  uploadedData = null;
+  document.getElementById('uploadFname').textContent = '';
+  showEmptyState();
 }
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
