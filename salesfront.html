@@ -94,9 +94,10 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto San
 <header class="site-header">
   <span class="site-logo">🇺🇸 🇯🇵 🇳🇱 🇪🇸 🇨🇴 해외영업팀 주간보고</span>
   <div style="display:flex;align-items:center;gap:10px;">
-    <div class="site-meta">
-      <input type="date" class="date-input" id="reportDate" value="2026-06-08">
-      <span id="weekLabel" style="font-size:12px;opacity:0.7;"></span>
+    <div class="site-meta" style="display:flex;align-items:center;gap:6px;">
+      <select id="weekSelect" class="date-input" style="font-size:12px;padding:3px 8px;"></select>
+      <button onclick="confirmWeek()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">확정</button>
+      <span id="weekLabel" style="font-size:12px;opacity:0.8;white-space:nowrap;"></span>
     </div>
     <div class="print-btns" style="display:flex;gap:6px;">
       <button onclick="window.print()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">🖨 현재 페이지</button>
@@ -317,24 +318,42 @@ const STORAGE_KEY = 'weeklyReport_page1';
 
 const DataStore = createDataStore('page1');
 
-function getWeekLabel(dateStr) {
-  const d = new Date(dateStr);
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
+function getWeekLabel(date) {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
   const weekNum = Math.ceil(day / 7);
   const labels = ['','1째','2째','3째','4째','5째'];
-  return `${d.getFullYear()}년 ${month}월 ${labels[weekNum] || weekNum+'째'}주`;
+  return `${date.getFullYear()}년 ${month}월 ${labels[weekNum] || weekNum+'째'}주`;
 }
 
-function updateWeekLabel() {
-  const val = document.getElementById('reportDate').value;
-  const lbl = getWeekLabel(val);
+function initWeekSelect(savedLabel) {
+  const sel = document.getElementById('weekSelect');
+  sel.innerHTML = '';
+  const today = new Date();
+  [-7, 0, 7].forEach(offset => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + offset);
+    const lbl = getWeekLabel(d);
+    const opt = document.createElement('option');
+    opt.value = lbl;
+    opt.textContent = lbl;
+    if (savedLabel ? lbl === savedLabel : offset === 0) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  const confirmed = savedLabel || sel.value;
+  document.getElementById('weekDisplay').textContent = confirmed;
+  document.getElementById('weekLabel').textContent = '✓ ' + confirmed;
+}
+
+function confirmWeek() {
+  const lbl = document.getElementById('weekSelect').value;
   document.getElementById('weekDisplay').textContent = lbl;
-  document.getElementById('weekLabel').textContent = lbl;
+  document.getElementById('weekLabel').textContent = '✓ ' + lbl;
+  saveAll();
 }
 
 async function saveAll() {
-  const data = { date: document.getElementById('reportDate').value };
+  const data = { weekLabel: document.getElementById('weekDisplay').textContent };
   SEC_IDS.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.innerHTML; });
   CE_IDS.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.innerHTML; });
   data.freightBody = document.getElementById('freightBody').innerHTML;
@@ -352,7 +371,7 @@ async function loadAll() {
   const data = await DataStore.load();
   if (!data) return;
   try {
-    if (data.date) { document.getElementById('reportDate').value = data.date; updateWeekLabel(); }
+    initWeekSelect(data.weekLabel || null);
     SEC_IDS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] != null) { el.innerHTML = data[id]; renumberSec(id); }
@@ -458,13 +477,8 @@ function markChanged() {
 document.querySelectorAll('[contenteditable]').forEach(el => {
   el.addEventListener('input', markChanged);
 });
-document.getElementById('reportDate').addEventListener('change', () => {
-  updateWeekLabel();
-  markChanged();
-});
-
-loadAll().then(() => calcRate()).catch(() => calcRate());
-updateWeekLabel();
+loadAll().then(() => calcRate()).catch(() => { initWeekSelect(null); calcRate(); });
+initWeekSelect(null);
 function printAllPages(){const base=location.href.split('?')[0].replace(/[^\/]+$/,'');['salesfront.html','salesresult.html','kawase.html','kusafreight.html','issuefound.html','paymentmng.html','sanzmng.html','mtgmng.html'].forEach((p,i)=>setTimeout(()=>window.open(base+p+'?print=1','_blank'),i*600));}
 if(new URLSearchParams(location.search).get('print')){setTimeout(()=>window.print(),2500);}
 </script>
